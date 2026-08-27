@@ -651,9 +651,9 @@ export const HeroLenisExperience: React.FC<HeroLenisExperienceProps> = ({
               <div className="absolute inset-0 bg-gradient-to-t from-app-bg/90 via-app-bg/40 to-transparent z-10 pointer-events-none" />
               <div className="w-full h-full bg-app-surface flex items-center justify-center relative overflow-hidden">
                 <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop"
+                  src="/assets/images/portfolio.jpeg"
                   alt="Elia Abdel Massih - Developer"
-                  className="w-full h-full object-cover grayscale contrast-[1.08] transition-transform duration-700 ease-out hover-fine:group-hover:scale-105"
+                  className="w-full h-full object-cover object-top contrast-[1.08] transition-[transform,filter] duration-700 ease-out hover-fine:group-hover:scale-105 hover-fine:group-hover:grayscale"
                   loading="eager"
                 />
                 <div className="absolute bottom-3 left-4 z-20 flex items-center gap-2">
