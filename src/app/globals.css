@@ -1,0 +1,682 @@
+@import "tailwindcss";
+
+/*
+ * Hover gating variant. Touch devices synthesise a hover on tap, so an ungated
+ * `hover:` transform sticks on after the finger lifts. Use `hover-fine:` for
+ * any hover that MOVES something (scale, translate); plain `hover:` is fine for
+ * colour and border changes.
+ *
+ *   <img className="hover-fine:group-hover:scale-105" />
+ */
+@custom-variant hover-fine {
+  @media (hover: hover) and (pointer: fine) {
+    @slot;
+  }
+}
+
+@theme {
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  /*
+   * Accent scale — electric blue, hue 227.
+   *
+   * Replaces the previous gold scale. The gold main (#c6943b) measured
+   * 2.43:1 against the #fafafa page background, failing both WCAG AA text
+   * (4.5:1) and the 3:1 non-text minimum, which made every accent-coloured
+   * link, label and section numeral on the site technically illegible.
+   * accent-500 below measures 7.33:1 — AAA.
+   */
+  --color-accent-50: #f0f3ff;
+  --color-accent-100: #e0e7ff;
+  --color-accent-200: #beccfe;
+  --color-accent-300: #8aa2fa;
+  --color-accent-400: #4e72f4;
+  --color-accent-500: #0f3dde; /* Main brand accent — 7.33:1 on #fafafa */
+  --color-accent-600: #0c32bb;
+  --color-accent-700: #0a2999;
+  --color-accent-800: #082078;
+  --color-accent-900: #061756;
+
+  /* Abstract colour tokens. Single light theme — no data-theme swapping. */
+  --color-app-bg: var(--color-bg);
+  --color-app-surface: var(--color-surface);
+  --color-app-text-primary: var(--color-text-primary);
+  --color-app-text-secondary: var(--color-text-secondary);
+  --color-app-border: var(--color-border);
+  --color-app-accent: var(--color-accent);
+  --color-app-accent-tint: var(--color-accent-tint);
+
+  /*
+   * Radius scale. These keys drive the Tailwind `rounded-*` utilities, so
+   * raising them here rounds every existing call site at once rather than
+   * editing 16 of them individually. Values are deliberately generous — the
+   * whole surface should read as soft.
+   */
+  --radius-xs: 8px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-2xl: 28px;
+  --radius-3xl: 36px;
+  --radius-4xl: 48px;
+}
+
+:root {
+  /* Single light theme */
+  --color-bg: #fafafa;
+  --color-surface: #ffffff;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #5f6470;
+  --color-border: rgba(16, 24, 48, 0.10);
+  --color-accent: #0f3dde;
+  --color-accent-tint: rgba(15, 61, 222, 0.12);
+  --color-accent-gradient: linear-gradient(135deg, #0a2999, #4e72f4);
+
+  /*
+   * Motion tokens.
+   *
+   * `--ease-out` / `--ease-in-out` / `--ease-drawer` are the STANDARDS.md
+   * curves. `--ease-snap` is the sharper display curve added for this pass:
+   * it front-loads almost all of the travel and settles hard, which is what
+   * separates confident from floaty. The JS mirrors live in
+   * config/motion.ts — keep the two in sync.
+   */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-snap: cubic-bezier(0.19, 1, 0.22, 1); /* mirrors GSAP expo.out */
+
+  /* Duration scale */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-section: 500ms;
+
+  /* Type scale tokens (used by components via Tailwind arbitrary values) */
+  --font-display: clamp(3rem, 8vw, 7.5rem);
+  --font-h1: 2.25rem;
+  --font-h2: 1.5rem;
+  --font-h3: 1.125rem;
+  --font-body: 0.875rem;
+  --font-caption: 0.75rem;
+  --font-mono-xs: 0.625rem;
+  --font-mono-code: 0.75rem;
+
+  /* Section spacing scale */
+  --space-section-y: 7rem;
+  --space-section-gap: 4rem;
+  --space-card-padding: 1.5rem;
+  --space-grid-gap: 2rem;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans);
+    margin: 0;
+    overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Selection style */
+  ::selection {
+    background-color: rgba(15, 61, 222, 0.18);
+    color: var(--color-text-primary);
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(15, 61, 222, 0.25);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(15, 61, 222, 0.55);
+  }
+
+  /* Interactive items cursor defaults */
+  a, button, [role="button"] {
+    cursor: pointer;
+  }
+
+  /* High-contrast accessible focus indicator */
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+/* ================================================================== *
+ * Load orchestration.
+ *
+ * `data-preload` is stamped onto <html> by a blocking inline script in
+ * layout.tsx BEFORE first paint, so the correct state is known on the very
+ * first frame. This is the fix for "hero appears, then the loader appears,
+ * then the hero appears again": the old Preloader started from
+ * useState(false), so the server shipped no overlay at all and the hero
+ * necessarily painted first.
+ *
+ * Three states:
+ *
+ *   "loading"  first view this session — overlay visible, scroll locked,
+ *              hero entrance held at its first frame
+ *   "ready"    loader finished, or a repeat view in the same session
+ *   (absent)   JS disabled, or the inline script failed
+ *
+ * The DEFAULT (attribute absent) hides the overlay and leaves content fully
+ * visible and scrollable. That direction matters: a visitor without JS gets
+ * the site, never a permanent blank overlay.
+ * ================================================================== */
+
+.preloader-root {
+  display: none;
+}
+
+html[data-preload='loading'] .preloader-root {
+  display: flex;
+}
+
+html[data-preload='loading'],
+html[data-preload='loading'] body {
+  overflow: hidden;
+}
+
+/*
+ * Hold the CSS-keyframe hero entrance at frame 0 while the loader is up
+ * rather than letting it play out unseen behind an opaque overlay. The
+ * `both` fill mode on these classes means the paused state is the
+ * animation's own first frame.
+ */
+html[data-preload='loading'] .hero-line,
+html[data-preload='loading'] .hero-rise,
+html[data-preload='loading'] .hero-slide,
+html[data-preload='loading'] .hero-glyph {
+  animation-play-state: paused;
+}
+
+/*
+ * Reduced motion.
+ *
+ * Deliberately NOT a blanket `transition-duration: 0.01ms !important` on `*`.
+ * That removed every comprehension-aiding transition on the site — hover colour
+ * changes, focus rings, accordion disclosure — which is more than the
+ * preference asks for (fewer and gentler, not zero). It also did nothing
+ * about GSAP, which is where all the actual movement lives; that is handled
+ * per-component via gsap.matchMedia (see config/motion.ts MQ.reduced).
+ *
+ * What we drop here: looping/decorative keyframe animation and smooth scroll
+ * anchoring. What we keep: colour, border and opacity transitions.
+ */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
+  /* Kill looping decorative animation (pulse, ping, float, spin). */
+  .animate-pulse,
+  .animate-ping,
+  .animate-spin,
+  .animate-bounce {
+    animation: none !important;
+  }
+
+  /* Drop transform-based motion, keep colour/opacity feedback. */
+  *, *::before, *::after {
+    transition-property: color, background-color, border-color, fill, stroke,
+      opacity, box-shadow !important;
+    transition-duration: 200ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* Glassmorphism helper */
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(16, 24, 48, 0.06);
+}
+
+/* Subtle scroll indicator float */
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(3px); }
+}
+
+/* ================================================================== *
+ * Masked line reveal — the shared entrance primitive.
+ *
+ * A clipping parent plus a child that starts fully below its own box.
+ * Percentage travel means it works at any type size with no hardcoded
+ * pixels, and nothing is ever visible outside its own layout box, so a big
+ * dramatic reveal never bleeds into a neighbouring section.
+ *
+ *   <span class="reveal-mask"><span class="reveal-line">TEXT</span></span>
+ *
+ * GSAP targets `.reveal-line` for scroll-driven variants; the classes here
+ * only establish the clip, so markup stays fully visible without JS.
+ * ================================================================== */
+
+.reveal-mask {
+  display: block;
+  overflow: clip;
+  /* Descenders (g, y, p) would otherwise be shaved off by the clip. */
+  padding-block-end: 0.08em;
+  margin-block-end: -0.08em;
+}
+
+.reveal-mask-inline {
+  display: inline-block;
+  overflow: clip;
+  vertical-align: bottom;
+  padding-block-end: 0.08em;
+  margin-block-end: -0.08em;
+}
+
+/* ================================================================== *
+ * Hero mount reveal — CSS, deliberately NOT JavaScript.
+ *
+ * This is the fix for the recurring "Hero title invisible on load" bug.
+ * The root cause was never the scroll system: the Framer Motion `initial`
+ * prop is SERVER-RENDERED as an inline style, so the prerendered HTML
+ * shipped `style="opacity:0;transform:translateY(100%)"` on the title.
+ * The title was then invisible until the JS bundle downloaded AND React
+ * hydrated AND Framer ran its mount animation. Any slow bundle, hydration
+ * mismatch, or JS error left it hidden permanently — which is why fixing
+ * ScrollTriggers never made the bug go away.
+ *
+ * CSS animation has none of that coupling: it runs on first paint with no
+ * JS, off the main thread (so it stays smooth during the load work that
+ * happens at exactly this moment), and the AUTHORED state of the element is
+ * fully visible — the animation only adds motion on top of it.
+ * ================================================================== */
+
+@keyframes hero-line-in {
+  from { opacity: 0; transform: translateY(100%); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-rise-in {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hero-slide-in {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes hero-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Masked line reveal for the display headline. The parent clips overflow. */
+.hero-line {
+  animation: hero-line-in 520ms var(--ease-snap) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+.hero-rise {
+  animation: hero-rise-in 420ms var(--ease-snap) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+.hero-slide {
+  animation: hero-slide-in 500ms var(--ease-snap) both;
+  animation-delay: var(--reveal-delay, 160ms);
+}
+
+/*
+ * Reduced motion: opacity only, no position change. Gentler, not zero.
+ * Because the resting state is authored-visible, even `animation: none`
+ * here would leave readable content — this just keeps a soft entrance.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .hero-line,
+  .hero-rise,
+  .hero-slide {
+    animation: hero-fade-in 300ms var(--ease-out) both;
+    animation-delay: 0ms;
+  }
+}
+
+/* ================================================================== *
+ * Hero name entrance — per-glyph masked rise.
+ *
+ * This is CSS and not a GSAP timeline, and that is the whole point.
+ *
+ * The first attempt at this pass built a PAUSED gsap timeline whose
+ * `from` state hid every glyph, then played it once the loader finished.
+ * It shipped invisible: measured in the browser, each glyph sat at
+ * `translate(0%, 110%)` behind its clip parent with visibleFraction 0,
+ * because the hidden state lived in JS and the release depended on an
+ * event that had to survive hydration. That is the same coupling behind
+ * the recurring invisible-hero bug, just with GSAP instead of Framer.
+ *
+ * CSS has no such coupling. The animation runs on first paint with no JS,
+ * off the main thread, and the only thing that can hold it is the
+ * `data-preload` attribute — which has three independent releases: the
+ * loader, the failsafe timeout in the inline script, and the attribute
+ * simply being absent. Per-glyph timing comes from --reveal-delay,
+ * computed during render, so the stagger origins (left-to-right,
+ * right-to-left, centre-out) survive without a JS sequencer.
+ * ================================================================== */
+
+@keyframes hero-glyph-in {
+  from { transform: translateY(110%); }
+  to   { transform: translateY(0); }
+}
+
+.hero-glyph {
+  animation: hero-glyph-in 440ms var(--ease-snap) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* No travel. The clip parent means a plain fade still reads correctly. */
+  .hero-glyph {
+    animation: hero-fade-in 300ms var(--ease-out) both;
+    animation-delay: 0ms;
+  }
+}
+
+/* Smooth drag cursor */
+.drag-grab {
+  cursor: grab;
+}
+.drag-grab:active {
+  cursor: grabbing;
+}
+
+/* ================================================================== *
+ * Services — sticky card stack.
+ *
+ * Stacking here is CSS `position: sticky`, NOT ScrollTrigger `pin`, and the
+ * distinction is the whole reason this is buildable. `pin` injects a
+ * pin-spacer into the layout, switches the target to `position: fixed`, and
+ * recalculates on every resize — including the mobile address-bar collapse.
+ * That is precisely the fixed-vs-relative conflict that made the old
+ * PinnedProfileCard go through iteration after iteration. Here the browser
+ * owns position and GSAP only ever writes paint properties (scale, opacity,
+ * clip-path), so there is nothing for the two systems to disagree about.
+ *
+ * `position: sticky` also survives the ancestor chain: SectionWrapper's
+ * `overflow-x: clip` is the one overflow value that leaves the other axis
+ * genuinely `visible` rather than computing it to `auto`, so vertical
+ * stickiness is not trapped. Lenis drives native scroll (no transformed
+ * content wrapper), so there is no transform ancestor either.
+ * ================================================================== */
+
+.service-stack {
+  position: relative;
+  /*
+   * px on purpose. The fit measurement in Services.tsx reads these back
+   * with parseFloat, and `6rem` would parse to 6 rather than 96.
+   */
+  --service-top: 80px;
+  --service-step: 8px;
+  --service-runway: 26vh;
+}
+
+@media (min-width: 768px) {
+  .service-stack {
+    --service-top: 88px;
+    --service-step: 10px;
+    --service-runway: 34vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .service-stack {
+    --service-top: 96px;
+    --service-step: 14px;
+    --service-runway: 42vh;
+  }
+}
+
+/*
+ * Stacking is opt-IN, written by JS only after measuring that the tallest
+ * card actually FITS the available viewport height.
+ *
+ * A sticky element taller than its viewport is a real trap, not a cosmetic
+ * issue: it pins at the top and its lower half becomes permanently
+ * unreachable, because scrolling no longer moves it. So with the attribute
+ * absent — no JS, a JS error, a short viewport, a long service description —
+ * every card is an ordinary block in document flow. The failure mode is
+ * "reads as a plain list", never "half of every card is unreachable".
+ */
+.service-stack[data-stacked='true'] .service-card {
+  position: sticky;
+  /* --service-index is a unitless number set inline per card. */
+  top: calc(var(--service-top) + var(--service-index, 0) * var(--service-step));
+}
+
+/*
+ * Scroll runway between two cards. Doubles as the trigger element for the
+ * cover-recede scrub: it is an ordinary in-flow block, so its rect is
+ * stable, whereas a stuck card's rect is not — which is what makes
+ * ScrollTrigger unreliable when pointed at a sticky element directly.
+ */
+.service-runway {
+  height: 2.5rem;
+}
+
+.service-stack[data-stacked='true'] .service-runway {
+  height: var(--service-runway);
+}
+
+/* ================================================================== *
+ * Projects — 3D spatial gallery.
+ *
+ * A sticky perspective stage the camera travels through. CSS owns position
+ * (sticky) and the depth context (perspective); GSAP owns nothing but
+ * `transform` and `opacity` on the layers. Same division of labour as the
+ * service stack, and the same reason: no ScrollTrigger pin, so no
+ * fixed-vs-relative conflict is reachable.
+ *
+ * Every layer is positioned by GRID STACKING (shared `grid-area` +
+ * `place-items: center`), never by a centering transform — GSAP writes
+ * `transform` outright and also resets the independent translate/rotate/scale
+ * properties, so any CSS centring would be wiped on the first tick.
+ * ================================================================== */
+
+.gallery-track {
+  position: relative;
+  /*
+   * Declared on the TRACK rather than the stage because the track's own
+   * height is computed from the stage height, and a custom property set on a
+   * child is not visible to its parent.
+   */
+  --gallery-unit-runway: 62vh;
+  --gallery-stage-h: 74vh;
+  --gallery-stage-top: 6vh;
+  /*
+   * The runway is real BOX HEIGHT, not padding. A stickily positioned box is
+   * constrained to its containing block's CONTENT box, and padding is not
+   * part of that box — expressed as padding, the sticky range would be
+   * exactly zero and the stage would scroll away like a static element.
+   *
+   * --gallery-units is set inline from galleryUnits() in config/motion.ts.
+   * The JS progress mapping reads the SAME number, so CSS and animation
+   * cannot disagree about where the last project reaches focus.
+   */
+  height: calc(
+    var(--gallery-stage-h) + var(--gallery-units, 5.4) * var(--gallery-unit-runway)
+  );
+}
+
+.gallery-stage {
+  position: sticky;
+  top: var(--gallery-stage-top);
+  height: var(--gallery-stage-h);
+  display: grid;
+  place-items: center;
+  transform-style: preserve-3d;
+  /*
+   * The stage clips its own depth. Surfaces travel past the camera to a
+   * positive Z, which without this would paint over the sections above and
+   * below once they grow beyond the stage box.
+   */
+  overflow: hidden;
+  /* `perspective` is written per tier from JS — see PROJECT_GALLERY_CONFIG. */
+}
+
+/*
+ * The continuous environment. ONE gradient field for the whole gallery, not
+ * three per-project backgrounds: the tone is interpolated by GSAP writing
+ * --env-warm / --env-cool / --env-dark as the camera travels, so the
+ * transition between rooms is gradual by construction rather than by
+ * crossfading three stacked layers.
+ */
+.gallery-env {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      120% 90% at 22% 18%,
+      rgb(255 255 255 / calc(0.55 * var(--env-warm, 1))) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      95% 85% at 78% 72%,
+      rgb(180 205 235 / calc(0.42 * var(--env-cool, 0))) 0%,
+      transparent 66%
+    ),
+    radial-gradient(
+      140% 120% at 50% 50%,
+      rgb(12 16 26 / calc(0.72 * var(--env-dark, 0))) 0%,
+      transparent 78%
+    );
+}
+
+/* Fine structural grid. Reads as the room the exhibition sits in. */
+.gallery-grid-lines {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  opacity: 0.5;
+  background-image:
+    linear-gradient(to right, var(--color-border) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border) 1px, transparent 1px);
+  background-size: 7rem 7rem;
+  mask-image: radial-gradient(65% 60% at 50% 50%, #000 0%, transparent 100%);
+}
+
+@media (min-width: 768px) {
+  .gallery-track {
+    --gallery-unit-runway: 68vh;
+    --gallery-stage-h: 78vh;
+  }
+}
+
+@media (min-width: 1024px) {
+  .gallery-track {
+    --gallery-unit-runway: 74vh;
+    --gallery-stage-h: 82vh;
+  }
+}
+
+/* Every depth layer shares the one grid cell. */
+.gallery-layer {
+  grid-area: 1 / 1;
+  backface-visibility: hidden;
+}
+
+/*
+ * Oversized project numeral. Environmental typography: it lives at its own
+ * depth and parallaxes slower than the surface it belongs to, which is what
+ * gives the scene scale without adding graphics.
+ */
+.gallery-numeral {
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(11rem, 34vw, 30rem);
+  line-height: 0.78;
+  letter-spacing: -0.05em;
+  user-select: none;
+}
+
+.gallery-surface {
+  width: 86%;
+  max-width: 1040px;
+  /*
+   * Height as a fraction of the stage rather than an aspect-ratio, so a
+   * surface can never compute taller than the cell holding it and overflow
+   * into the neighbouring section.
+   */
+  height: 78%;
+}
+
+.gallery-secondary {
+  width: 21%;
+  max-width: 210px;
+  height: 62%;
+}
+
+@media (max-width: 767px) {
+  /*
+   * Mobile is a deliberate composition, not a scaled-down desktop scene: the
+   * companion surface is dropped entirely rather than shrunk to
+   * illegibility, and the main surface takes the width it frees up.
+   */
+  .gallery-secondary {
+    display: none;
+  }
+
+  .gallery-surface {
+    width: 92%;
+    height: 62%;
+  }
+}
+
+/*
+ * Reduced motion: flatten the exhibition into an ordinary vertical list.
+ *
+ * Deliberately NOT `display: none`. The stage is the only place the project
+ * images appear, so hiding it would cost those users the images rather than
+ * just the motion. Dropping sticky and perspective leaves the surfaces
+ * stacked in normal flow. GSAP writes no inline transforms here because the
+ * gallery timeline only exists inside the width-tier branches.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .gallery-track {
+    height: auto;
+  }
+
+  .gallery-stage {
+    position: static;
+    height: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3rem;
+    perspective: none;
+    transform-style: flat;
+    overflow: visible;
+  }
+
+  .gallery-env,
+  .gallery-grid-lines,
+  .gallery-numeral,
+  .gallery-secondary {
+    display: none;
+  }
+
+  .gallery-surface {
+    width: 100%;
+    max-width: none;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+}

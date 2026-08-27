@@ -1,0 +1,52 @@
+# dependencies
+/node_modules
+/.pnpm
+/.yarn
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+/dist
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env*.local
+.env
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# AI agent / IDE files
+.agent/
+.claude/
+.ruff_cache/
+
+# dev artifacts & scratch
+scratch/
+scripts/
+IMPORTANT/
+21st/
+lighthouse/
+implementation_plan.md
+IMPLEMENTATION_STATUS.md
+SCROLL_ANIMATION_AUDIT.md
+LLM_PROJECT_CONTEXT.md
+*.claude.txt
+2026-08-18-003636-claude.txt
+animated-slideshow.tsx.txt
+demo.tsx.txt
