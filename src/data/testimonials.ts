@@ -3,7 +3,7 @@ import type { Testimonial } from '../types';
 export const testimonials: Testimonial[] = [
   {
     id: 't1',
-    author_name: 'Charbel Hanna',
+    author_name: 'Maroun Kabalan',
     author_title: 'Founder & Owner',
     author_company: 'Sport Zone',
     author_avatar_url: '',
@@ -14,8 +14,8 @@ export const testimonials: Testimonial[] = [
   },
   {
     id: 't2',
-    author_name: 'Dr. Marwan Khoury',
-    author_title: 'Clinic Director',
+    author_name: 'Youssef Abi Khers',
+    author_title: 'Physiotherapist & Founder',
     author_company: 'The Physio Clinic',
     author_avatar_url: '',
     content: 'We needed a website that felt premium and matched the quality of our clinic — not a generic template. Elia built the whole thing from scratch with animations, 3D elements, and it loads incredibly fast. Our patients actually comment on how good the site looks, which never happened with our old one. He understood exactly what we wanted without us having to over-explain. Very professional to work with and delivered ahead of schedule.',
