@@ -4,7 +4,7 @@ export const experience: Experience[] = [
   {
     id: 'exp-1',
     title: 'Full Stack Developer',
-    company: 'Lebanese Military - IT Department',
+    company: 'IT Department',
     location: 'Lebanon',
     start_date: '2023-01-01',
     end_date: null,

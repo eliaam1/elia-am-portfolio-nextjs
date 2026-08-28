@@ -519,7 +519,7 @@ export const About: React.FC<AboutProps> = ({ settings, loading }) => {
                 <div className="relative w-full h-[120%] -top-[10%] overflow-hidden">
                   <img
                     ref={imageParallaxRef}
-                    src="/assets/images/image.jpeg"
+                    src="/assets/images/image.png"
                     alt="Elia Abdel Massih - About"
                     className="w-full h-full object-cover object-top contrast-[1.08] transition-[transform,filter] duration-700 ease-out hover-fine:group-hover:scale-105 hover-fine:group-hover:grayscale will-change-transform"
                     loading="lazy"
