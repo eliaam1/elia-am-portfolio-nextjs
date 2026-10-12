@@ -5,7 +5,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { WEBGL_AMBIENT_BREAKPOINT, PRELOADER_CONFIG } from '../../config/motion';
+import { PRELOADER_CONFIG } from '../../config/motion';
 import { PRELOAD_MIN_MS } from '../../config/constants';
 import { markPreloadComplete, isPreloadPending } from '../../lib/preload';
 import { getLenis } from '../../lib/lenis';
@@ -52,9 +52,10 @@ const VERTEX_SHADER = /* glsl */ `
     vec3 target = position * uFit.x + vec3(0.0, uFit.y, 0.0);
     vec3 pos = mix(aScatter, target, staggered);
 
-    // Idle drift keeps the settled wordmark alive rather than frozen.
-    pos.x += sin(uTime * 0.6 + aSeed * 12.0) * 0.015 * staggered;
-    pos.y += cos(uTime * 0.5 + aSeed * 9.0) * 0.015 * staggered;
+    // Idle drift keeps the settled wordmark alive rather than frozen. Scaled
+    // with the wordmark, or on a phone it smears glyphs a quarter the size.
+    pos.x += sin(uTime * 0.6 + aSeed * 12.0) * 0.015 * uFit.x * staggered;
+    pos.y += cos(uTime * 0.5 + aSeed * 9.0) * 0.015 * uFit.x * staggered;
 
     // uProgress above 1 is the exit: push every point radially outward.
     float d = max(uProgress - 1.0, 0.0);
@@ -101,14 +102,18 @@ interface WordmarkTargets {
 }
 
 /**
- * Sample glyph coverage of the wordmark into `count` world-space points.
+ * Sample glyph coverage of the wordmark into world-space points; `countFor`
+ * picks how many from the measured ink coverage.
  *
  * Returns null when the rasterised text yields too few opaque pixels to
  * fill the cloud, which happens if the font stack resolves to something
  * unexpected. Callers fall back to the lattice so the loader never renders
  * a half-empty cloud.
  */
-function sampleWordmarkPoints(lines: string[], count: number): WordmarkTargets | null {
+function sampleWordmarkPoints(
+  lines: string[],
+  countFor: (inkFraction: number) => number
+): WordmarkTargets | null {
   const canvas = document.createElement('canvas');
   const W = SAMPLE_W;
   const H = SAMPLE_LINE_H * lines.length;
@@ -145,12 +150,19 @@ function sampleWordmarkPoints(lines: string[], count: number): WordmarkTargets |
   }
 
   const available = candidates.length / 2;
+  // Share of the sampled box covered by glyph strokes, so the caller can
+  // size the cloud to the ink actually drawn rather than to the bounding box.
+  const count = countFor(available / ((W / 2) * (H / 2)));
   if (available < count * 0.5) return null;
 
   const height = (WORDMARK_WORLD_WIDTH * H) / W;
   const out = new Float32Array(count * 3);
+  // Stratified, not uniform-random: candidates are in scan order, so one
+  // pick per equal slice covers every stroke evenly. Pure random sampling
+  // clumps and leaves holes, which is what made small glyphs unreadable.
+  const stride = available / count;
   for (let i = 0; i < count; i++) {
-    const j = Math.floor(Math.random() * available);
+    const j = Math.min(available - 1, Math.floor((i + Math.random()) * stride));
     out[i * 3] = (candidates[j * 2] / W - 0.5) * WORDMARK_WORLD_WIDTH;
     out[i * 3 + 1] = -(candidates[j * 2 + 1] / H - 0.5) * height;
     out[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
@@ -227,8 +239,6 @@ export const WebGLPreloader: React.FC = () => {
       const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       // No width gate: this is one-shot WebGL. It builds, plays once and
       // disposes, so a phone never carries a standing render loop for it.
-      // Only the particle count scales.
-      const isWide = window.matchMedia(`(min-width: ${WEBGL_AMBIENT_BREAKPOINT}px)`).matches;
       const useWebGL = !prefersReduced && !!canvasRef.current;
 
       /* ---------------------------------------------------------- *
@@ -310,8 +320,8 @@ export const WebGLPreloader: React.FC = () => {
        * so the name ran off both edges and sat underneath the counter.
        * Working in CSS pixels lets the counter's real rect set the limit.
        */
-      const fitWordmark = () => {
-        if (!camera || !material || !counterRef.current) return;
+      const measureFit = () => {
+        if (!camera || !counterRef.current) return null;
         const vw = window.innerWidth;
         const vh = window.innerHeight;
         const visibleH =
@@ -329,14 +339,40 @@ export const WebGLPreloader: React.FC = () => {
         );
 
         const centerPx = counterTop - FIT_GAP_PX - (wordmarkHeight * scale * pxPerWorld) / 2;
-        material.uniforms.uFit.value.set(scale, (vh / 2 - centerPx) / pxPerWorld);
+        return { scale, y: (vh / 2 - centerPx) / pxPerWorld, pxPerWorld };
+      };
+
+      const fitWordmark = () => {
+        const fit = measureFit();
+        if (fit && material) material.uniforms.uFit.value.set(fit.scale, fit.y);
+      };
+
+      /*
+       * Particle count from legibility, not from a width breakpoint.
+       *
+       * A glyph needs a minimum number of dots to read at all, however small
+       * it is drawn — the old flat 1200 on phones gave ~80 per letter and the
+       * name dissolved into noise. Large stacked glyphs (tablets) additionally
+       * need enough dots to keep the desktop's density. Cost is irrelevant at
+       * this scale: a few thousand points, rendered for about a second.
+       */
+      const particleCountFor = (lines: string[], inkFraction: number): number => {
+        const letters = lines.join('').replace(/ /g, '').length;
+        const fit = measureFit();
+        const inkPx = fit
+          ? WORDMARK_WORLD_WIDTH * wordmarkHeight * (fit.scale * fit.pxPerWorld) ** 2 * inkFraction
+          : 0;
+        const wanted = Math.max(
+          letters * PRELOADER_CONFIG.dotsPerLetter,
+          inkPx * PRELOADER_CONFIG.inkDensity
+        );
+        return Math.round(
+          Math.min(PRELOADER_CONFIG.maxParticles, Math.max(PRELOADER_CONFIG.particleCount, wanted))
+        );
       };
 
       if (useWebGL) {
         const canvas = canvasRef.current as HTMLCanvasElement;
-        const count = isWide
-          ? PRELOADER_CONFIG.particleCount
-          : PRELOADER_CONFIG.particleCountNarrow;
 
         try {
           renderer = new THREE.WebGLRenderer({
@@ -365,10 +401,16 @@ export const WebGLPreloader: React.FC = () => {
           );
           camera.position.z = 8;
 
-          layoutKey = wordmarkLines(camera.aspect).join('|');
+          const lines = wordmarkLines(camera.aspect);
+          layoutKey = lines.join('|');
+          // Provisional height (the sampled layout) so the count can be
+          // derived from the fitted size before any points exist.
+          wordmarkHeight = (WORDMARK_WORLD_WIDTH * SAMPLE_LINE_H * lines.length) / SAMPLE_W;
           const targets =
-            sampleWordmarkPoints(wordmarkLines(camera.aspect), count) ?? latticePoints(count);
+            sampleWordmarkPoints(lines, (ink) => particleCountFor(lines, ink)) ??
+            latticePoints(PRELOADER_CONFIG.particleCount);
           wordmarkHeight = targets.height;
+          const count = targets.points.length / 3;
 
           const scatter = new Float32Array(count * 3);
           const seeds = new Float32Array(count);
@@ -521,7 +563,7 @@ export const WebGLPreloader: React.FC = () => {
         if (geometry && lines.join('|') !== layoutKey) {
           layoutKey = lines.join('|');
           const count = geometry.getAttribute('position').count;
-          const targets = sampleWordmarkPoints(lines, count) ?? latticePoints(count);
+          const targets = sampleWordmarkPoints(lines, () => count) ?? latticePoints(count);
           wordmarkHeight = targets.height;
           geometry.setAttribute('position', new THREE.BufferAttribute(targets.points, 3));
         }

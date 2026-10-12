@@ -335,15 +335,23 @@ export const ABOUT_MOTION_CONFIG = {
  * ------------------------------------------------------------------ */
 
 export const PRELOADER_CONFIG = {
-  /** Particle count on a wide viewport. */
-  particleCount: 2600,
   /**
-   * Particle count below WEBGL_AMBIENT_BREAKPOINT. The loader now runs on
-   * phones too -- it is one-shot, so it costs a build and a dispose rather
-   * than a permanent render loop -- but the wordmark is physically smaller
-   * there, so most of the extra points would land on the same pixels.
+   * Floor on the particle count — what a desktop single-line wordmark gets.
+   * The real count is derived from legibility (see the two values below),
+   * because a flat per-breakpoint number left phone glyphs with ~80 dots
+   * each, too few to read.
    */
-  particleCountNarrow: 1200,
+  particleCount: 2600,
+  /** Minimum dots per glyph for it to read as a letter at any size. */
+  dotsPerLetter: 190,
+  /**
+   * Dots per CSS px² of inked glyph area, so large glyphs (stacked on a
+   * tablet) stay as dense as the desktop wordmark. Calibrated so a 1440×900
+   * desktop lands on particleCount.
+   */
+  inkDensity: 0.045,
+  /** Ceiling. Still trivial for a one-shot point cloud. */
+  maxParticles: 6000,
   /** Radius of the initial noise sphere the particles scatter from (world units). */
   scatterRadius: 5.2,
   /** How tightly particles converge on their target once progress hits 1. */
