@@ -28,10 +28,19 @@ export default function SmoothScrollProvider({
 
     // Debounced refresh. ScrollTrigger.refresh() recalculates every trigger's
     // start/end, so firing it unthrottled on every resize event (dozens per
-    // second during a window drag) is a real cost. ignoreMobileResize is set
-    // in initLenis() so browser-chrome collapse doesn't reach here at all.
+    // second during a window drag) is a real cost.
+    //
+    // Width-only on purpose. ignoreMobileResize (set in initLenis) only
+    // covers ScrollTrigger's OWN listener; this one still received the
+    // `resize` iOS Safari fires every time the address bar collapses or
+    // expands mid-scroll, and the resulting refresh re-measured every
+    // trigger under the user's finger — scrubbed timelines jumped or
+    // stalled on iPhone. A real layout change always changes the width.
     let refreshTimer: number | undefined;
+    let lastWidth = window.innerWidth;
     const scheduleRefresh = () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
       window.clearTimeout(refreshTimer);
       refreshTimer = window.setTimeout(() => ScrollTrigger.refresh(), 150);
     };

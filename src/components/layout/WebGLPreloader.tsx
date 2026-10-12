@@ -34,6 +34,9 @@ const VERTEX_SHADER = /* glsl */ `
   uniform float uSize;
   uniform float uPixelRatio;
   uniform float uTime;
+  // x: wordmark scale, y: wordmark vertical offset (world units). Applied to
+  // the target only, so the scatter cloud still fills the viewport on phones.
+  uniform vec2 uFit;
 
   varying float vAlpha;
 
@@ -46,7 +49,8 @@ const VERTEX_SHADER = /* glsl */ `
     // Per-point offset staggers arrival across the cloud.
     float staggered = clamp((e - aSeed * 0.25) / 0.75, 0.0, 1.0);
 
-    vec3 pos = mix(aScatter, position, staggered);
+    vec3 target = position * uFit.x + vec3(0.0, uFit.y, 0.0);
+    vec3 pos = mix(aScatter, target, staggered);
 
     // Idle drift keeps the settled wordmark alive rather than frozen.
     pos.x += sin(uTime * 0.6 + aSeed * 12.0) * 0.015 * staggered;
@@ -76,6 +80,26 @@ const FRAGMENT_SHADER = /* glsl */ `
   }
 `;
 
+/** Unscaled wordmark width in world units; height follows the line count. */
+const WORDMARK_WORLD_WIDTH = 11;
+const SAMPLE_W = 1024;
+const SAMPLE_LINE_H = 256;
+
+/**
+ * Portrait viewports stack the name, so it can be read at a useful size on a
+ * phone instead of being shrunk to a hairline (or, as before, overflowing
+ * both edges of the screen).
+ */
+const STACK_BELOW_ASPECT = 0.8;
+const wordmarkLines = (aspect: number): string[] =>
+  aspect < STACK_BELOW_ASPECT ? WORDMARK.split(' ') : [WORDMARK];
+
+interface WordmarkTargets {
+  points: Float32Array;
+  /** World-space height of the unscaled wordmark (width is WORDMARK_WORLD_WIDTH). */
+  height: number;
+}
+
 /**
  * Sample glyph coverage of the wordmark into `count` world-space points.
  *
@@ -84,10 +108,10 @@ const FRAGMENT_SHADER = /* glsl */ `
  * unexpected. Callers fall back to the lattice so the loader never renders
  * a half-empty cloud.
  */
-function sampleWordmarkPoints(text: string, count: number): Float32Array | null {
+function sampleWordmarkPoints(lines: string[], count: number): WordmarkTargets | null {
   const canvas = document.createElement('canvas');
-  const W = 1024;
-  const H = 256;
+  const W = SAMPLE_W;
+  const H = SAMPLE_LINE_H * lines.length;
   canvas.width = W;
   canvas.height = H;
 
@@ -98,16 +122,19 @@ function sampleWordmarkPoints(text: string, count: number): Float32Array | null 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
 
-  // Shrink until the wordmark fits the sampling canvas.
-  let fontSize = 160;
+  // Shrink until the widest line fits the sampling canvas.
+  let fontSize = 200;
   const maxWidth = W * 0.92;
+  const widest = () => Math.max(...lines.map((line) => ctx.measureText(line).width));
   ctx.font = `900 ${fontSize}px Inter, system-ui, sans-serif`;
-  while (ctx.measureText(text).width > maxWidth && fontSize > 12) {
+  while (widest() > maxWidth && fontSize > 12) {
     fontSize -= 4;
     ctx.font = `900 ${fontSize}px Inter, system-ui, sans-serif`;
   }
 
-  ctx.fillText(text, W / 2, H / 2);
+  lines.forEach((line, i) => {
+    ctx.fillText(line, W / 2, SAMPLE_LINE_H * (i + 0.5));
+  });
 
   const { data } = ctx.getImageData(0, 0, W, H);
   const candidates: number[] = [];
@@ -120,30 +147,38 @@ function sampleWordmarkPoints(text: string, count: number): Float32Array | null 
   const available = candidates.length / 2;
   if (available < count * 0.5) return null;
 
+  const height = (WORDMARK_WORLD_WIDTH * H) / W;
   const out = new Float32Array(count * 3);
   for (let i = 0; i < count; i++) {
     const j = Math.floor(Math.random() * available);
-    out[i * 3] = (candidates[j * 2] / W - 0.5) * 11;
-    out[i * 3 + 1] = -(candidates[j * 2 + 1] / H - 0.5) * 2.75;
+    out[i * 3] = (candidates[j * 2] / W - 0.5) * WORDMARK_WORLD_WIDTH;
+    out[i * 3 + 1] = -(candidates[j * 2 + 1] / H - 0.5) * height;
     out[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
   }
-  return out;
+  return { points: out, height };
 }
 
 /** Even lattice, used when glyph sampling is unavailable. */
-function latticePoints(count: number): Float32Array {
+function latticePoints(count: number): WordmarkTargets {
+  const height = (WORDMARK_WORLD_WIDTH * SAMPLE_LINE_H) / SAMPLE_W;
   const out = new Float32Array(count * 3);
   const cols = Math.ceil(Math.sqrt(count * 4));
   const rows = Math.ceil(count / cols);
   for (let i = 0; i < count; i++) {
     const cx = i % cols;
     const cy = Math.floor(i / cols);
-    out[i * 3] = (cx / Math.max(cols - 1, 1) - 0.5) * 11;
-    out[i * 3 + 1] = (cy / Math.max(rows - 1, 1) - 0.5) * 2.75;
+    out[i * 3] = (cx / Math.max(cols - 1, 1) - 0.5) * WORDMARK_WORLD_WIDTH;
+    out[i * 3 + 1] = (cy / Math.max(rows - 1, 1) - 0.5) * height;
     out[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
   }
-  return out;
+  return { points: out, height };
 }
+
+/** Fraction of the viewport width the wordmark may occupy. */
+const FIT_MAX_WIDTH = 0.86;
+/** Gap between the wordmark and the counter below it, and the top margin (px). */
+const FIT_GAP_PX = 28;
+const FIT_TOP_MIN_PX = 24;
 
 /**
  * WebGLPreloader
@@ -178,6 +213,7 @@ export const WebGLPreloader: React.FC = () => {
   const counterRef = useRef<HTMLSpanElement>(null);
   const barRef = useRef<HTMLSpanElement>(null);
   const wordmarkRef = useRef<HTMLDivElement>(null);
+  const nameRef = useRef<HTMLSpanElement>(null);
 
   useGSAP(
     () => {
@@ -263,6 +299,38 @@ export const WebGLPreloader: React.FC = () => {
       let material: THREE.ShaderMaterial | null = null;
       let scene: THREE.Scene | null = null;
       let camera: THREE.PerspectiveCamera | null = null;
+      let wordmarkHeight = 0;
+      let layoutKey = '';
+
+      /*
+       * Fit the wordmark to the viewport and seat it above the counter.
+       *
+       * Previously it was a fixed 11 world units wide, which at camera z=8
+       * only fits a landscape viewport: a portrait phone shows ~3.4 units,
+       * so the name ran off both edges and sat underneath the counter.
+       * Working in CSS pixels lets the counter's real rect set the limit.
+       */
+      const fitWordmark = () => {
+        if (!camera || !material || !counterRef.current) return;
+        const vw = window.innerWidth;
+        const vh = window.innerHeight;
+        const visibleH =
+          2 * camera.position.z * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+        const pxPerWorld = vh / visibleH;
+
+        const counterTop = counterRef.current.getBoundingClientRect().top;
+        const topMargin = Math.max(FIT_TOP_MIN_PX, vh * 0.06);
+        const availH = Math.max(counterTop - FIT_GAP_PX - topMargin, 0);
+
+        const scale = Math.min(
+          1,
+          (vw * FIT_MAX_WIDTH) / (WORDMARK_WORLD_WIDTH * pxPerWorld),
+          availH / (wordmarkHeight * pxPerWorld)
+        );
+
+        const centerPx = counterTop - FIT_GAP_PX - (wordmarkHeight * scale * pxPerWorld) / 2;
+        material.uniforms.uFit.value.set(scale, (vh / 2 - centerPx) / pxPerWorld);
+      };
 
       if (useWebGL) {
         const canvas = canvasRef.current as HTMLCanvasElement;
@@ -297,7 +365,10 @@ export const WebGLPreloader: React.FC = () => {
           );
           camera.position.z = 8;
 
-          const targets = sampleWordmarkPoints(WORDMARK, count) ?? latticePoints(count);
+          layoutKey = wordmarkLines(camera.aspect).join('|');
+          const targets =
+            sampleWordmarkPoints(wordmarkLines(camera.aspect), count) ?? latticePoints(count);
+          wordmarkHeight = targets.height;
 
           const scatter = new Float32Array(count * 3);
           const seeds = new Float32Array(count);
@@ -314,7 +385,7 @@ export const WebGLPreloader: React.FC = () => {
           }
 
           geometry = new THREE.BufferGeometry();
-          geometry.setAttribute('position', new THREE.BufferAttribute(targets, 3));
+          geometry.setAttribute('position', new THREE.BufferAttribute(targets.points, 3));
           geometry.setAttribute('aScatter', new THREE.BufferAttribute(scatter, 3));
           geometry.setAttribute('aSeed', new THREE.BufferAttribute(seeds, 1));
 
@@ -330,10 +401,16 @@ export const WebGLPreloader: React.FC = () => {
               uPixelRatio: { value: pixelRatio },
               uTime: { value: 0 },
               uColor: { value: new THREE.Color(0x0f3dde) },
+              uFit: { value: new THREE.Vector2(1, 0) },
             },
           });
 
           scene.add(new THREE.Points(geometry, material));
+
+          // The particles spell the name, so the DOM copy would only
+          // duplicate it. It stays as the no-WebGL fallback.
+          if (nameRef.current) nameRef.current.style.display = 'none';
+          fitWordmark();
         }
       }
 
@@ -438,6 +515,17 @@ export const WebGLPreloader: React.FC = () => {
         renderer.setSize(window.innerWidth, window.innerHeight, false);
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
+
+        // Rotation can cross the stacking threshold: resample the glyphs.
+        const lines = wordmarkLines(camera.aspect);
+        if (geometry && lines.join('|') !== layoutKey) {
+          layoutKey = lines.join('|');
+          const count = geometry.getAttribute('position').count;
+          const targets = sampleWordmarkPoints(lines, count) ?? latticePoints(count);
+          wordmarkHeight = targets.height;
+          geometry.setAttribute('position', new THREE.BufferAttribute(targets.points, 3));
+        }
+        fitWordmark();
       };
 
       gsap.ticker.add(frame);
@@ -474,9 +562,12 @@ export const WebGLPreloader: React.FC = () => {
         ref={wordmarkRef}
         className="relative z-10 flex flex-col items-center gap-6 px-6 text-center"
       >
-        {/* On desktop the particles spell this out, so the DOM copy stays
-            hidden there and leads on mobile, where there is no cloud. */}
-        <span className="text-[11px] font-mono font-bold uppercase tracking-[0.42em] text-app-text-secondary lg:opacity-0">
+        {/* Fallback for reduced motion / no WebGL. When the particle cloud
+            runs it spells the name itself and this is hidden from JS. */}
+        <span
+          ref={nameRef}
+          className="text-[11px] font-mono font-bold uppercase tracking-[0.42em] text-app-text-secondary"
+        >
           Elia Abdel Massih
         </span>
 
