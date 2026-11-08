@@ -10,25 +10,20 @@ import SectionHeading from '../components/layout/SectionHeading';
 import HeroSplit from '../components/sections/HeroSplit';
 import Profile from '../components/sections/profile/Profile';
 import StackDeck from '../components/sections/stack/StackDeck';
-import Services from '../components/sections/Services';
 import Statement from '../components/sections/Statement';
-import Projects from '../components/sections/Projects';
+import WorkDimension from '../components/sections/work/WorkDimension';
 import Experience from '../components/sections/Experience';
 import Testimonials from '../components/sections/Testimonials';
 import Contact from '../components/sections/Contact';
 import Footer from '../components/layout/Footer';
 import {
-  getProjects,
   getExperience,
   getTestimonials,
-  getServices,
   getSiteSettings,
 } from '../lib/api';
 
 export default function Home() {
   const settings = getSiteSettings();
-  const projects = getProjects();
-  const services = getServices();
   const experience = getExperience();
   const testimonials = getTestimonials();
 
@@ -82,38 +77,14 @@ export default function Home() {
           <StackDeck />
         </section>
 
-        {/* 02 / WORK — capabilities, the philosophy beat, then selected work. */}
+        {/*
+          02 / WORK — the Digital Dimension (selected work, tagged with the
+          services each project took; the old Services list was folded into
+          it), then the philosophy beat.
+        */}
         <section id="work" className="relative overflow-x-clip bg-app-bg">
-          <div className="w-full max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-28">
-            <SectionHeading
-              index="02"
-              overline="WORK"
-              title={
-                <>
-                  What I Do<span className="text-app-accent">.</span>
-                </>
-              }
-              intro="Specialized engineering and digital architecture offerings, built to scale and to last."
-            />
-            <Services services={services} loading={false} />
-          </div>
-
-          {/* Philosophy — full-bleed breathing space between the two halves. */}
+          <WorkDimension />
           <Statement />
-
-          <div className="w-full max-w-6xl mx-auto px-6 md:px-10 pt-20 md:pt-28 pb-20 md:pb-28">
-            <SectionHeading
-              variant="sub"
-              overline="SELECTED WORK"
-              title={
-                <>
-                  Selected Work<span className="text-app-accent">.</span>
-                </>
-              }
-              intro="Enterprise applications, full-stack systems and custom commerce products engineered for performance."
-            />
-            <Projects projects={projects} loading={false} />
-          </div>
         </section>
 
         {/* 03 / JOURNEY — timeline, then endorsements. */}
