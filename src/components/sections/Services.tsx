@@ -497,7 +497,7 @@ export const Services: React.FC<ServicesProps> = ({ services, loading }) => {
                         <button
                           onClick={handleInquire}
                           type="button"
-                          className="w-full py-3.5 px-6 rounded-xl bg-app-accent text-white font-semibold text-xs sm:text-sm tracking-wide uppercase font-sans inline-flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] duration-200 shadow-lg"
+                          className="w-full py-3.5 px-6 rounded-xl bg-app-accent text-app-on-accent font-semibold text-xs sm:text-sm tracking-wide uppercase font-sans inline-flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-[opacity,transform] duration-200 shadow-lg"
                         >
                           <span>Inquire About This</span>
                           <ArrowUpRight className="w-4 h-4" />

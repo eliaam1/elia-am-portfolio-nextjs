@@ -15,37 +15,46 @@
 }
 
 @theme {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /*
+   * Type system (families are loaded by next/font in layout.tsx and exposed
+   * as CSS variables on <html>):
+   *   sans    — DM Sans, body copy and UI
+   *   heading — Poppins 600–800, display headlines (tight negative tracking)
+   *   mono    — Space Grotesk, the "technical label" voice: eyebrows, meta,
+   *             indices, the brand lockup. Not truly monospace; use
+   *             `tabular-nums` where digits must align.
+   */
+  --font-sans: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-poppins), var(--font-dm-sans), system-ui, sans-serif;
+  --font-mono: var(--font-space-grotesk), ui-monospace, monospace;
 
   /*
-   * Accent scale — electric blue, hue 227.
-   *
-   * Replaces the previous gold scale. The gold main (#c6943b) measured
-   * 2.43:1 against the #fafafa page background, failing both WCAG AA text
-   * (4.5:1) and the 3:1 non-text minimum, which made every accent-coloured
-   * link, label and section numeral on the site technically illegible.
-   * accent-500 below measures 7.33:1 — AAA.
+   * Accent scale — Graphite & Acid Lime.
+   * accent-500 is the brand lime (#BDE66A): 12.5:1 on the #151816 base.
+   * Lime is never used as text on light surfaces (1.3:1 on Cloud White).
    */
-  --color-accent-50: #f0f3ff;
-  --color-accent-100: #e0e7ff;
-  --color-accent-200: #beccfe;
-  --color-accent-300: #8aa2fa;
-  --color-accent-400: #4e72f4;
-  --color-accent-500: #0f3dde; /* Main brand accent — 7.33:1 on #fafafa */
-  --color-accent-600: #0c32bb;
-  --color-accent-700: #0a2999;
-  --color-accent-800: #082078;
-  --color-accent-900: #061756;
+  --color-accent-50: #f4fae6;
+  --color-accent-100: #e9f5cd;
+  --color-accent-200: #d8ebaf; /* Soft lime — secondary accent surface */
+  --color-accent-300: #cbe98f;
+  --color-accent-400: #c4e87c;
+  --color-accent-500: #bde66a; /* Electric lime — primary accent */
+  --color-accent-600: #a3cc52;
+  --color-accent-700: #7f9f3f;
+  --color-accent-800: #56692d;
+  --color-accent-900: #2f3a1c;
 
-  /* Abstract colour tokens. Single light theme — no data-theme swapping. */
+  /* Abstract colour tokens — single dark theme. */
   --color-app-bg: var(--color-bg);
   --color-app-surface: var(--color-surface);
+  --color-app-surface-2: var(--color-surface-2);
   --color-app-text-primary: var(--color-text-primary);
   --color-app-text-secondary: var(--color-text-secondary);
   --color-app-border: var(--color-border);
   --color-app-accent: var(--color-accent);
+  --color-app-accent-soft: var(--color-accent-soft);
   --color-app-accent-tint: var(--color-accent-tint);
+  --color-app-on-accent: var(--color-on-accent);
 
   /*
    * Radius scale. These keys drive the Tailwind `rounded-*` utilities, so
@@ -64,15 +73,23 @@
 }
 
 :root {
-  /* Single light theme */
-  --color-bg: #fafafa;
-  --color-surface: #ffffff;
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #5f6470;
-  --color-border: rgba(16, 24, 48, 0.10);
-  --color-accent: #0f3dde;
-  --color-accent-tint: rgba(15, 61, 222, 0.12);
-  --color-accent-gradient: linear-gradient(135deg, #0a2999, #4e72f4);
+  /*
+   * Graphite & Acid Lime — single dark theme.
+   * Contrast on --color-bg: text-primary 15.9:1, accent 12.5:1,
+   * text-secondary 6.2:1. --color-border is decorative only (1.8:1).
+   */
+  color-scheme: dark;
+  --color-bg: #151816;          /* Obsidian Graphite — page */
+  --color-surface: #222823;     /* Forest Charcoal — secondary surfaces */
+  --color-surface-2: #2b322c;   /* Elevated Graphite — cards, raised UI */
+  --color-text-primary: #f1f2ec;   /* Cloud White */
+  --color-text-secondary: #929a91; /* Muted Sage */
+  --color-border: #394139;      /* Border Grey */
+  --color-accent: #bde66a;      /* Electric Lime */
+  --color-accent-soft: #d8ebaf; /* Soft Lime — light surface accent */
+  --color-accent-tint: rgba(189, 230, 106, 0.12);
+  --color-on-accent: #151816;   /* Text/icons placed on lime or soft lime */
+  --color-accent-gradient: linear-gradient(135deg, #a3cc52, #d8ebaf);
 
   /*
    * Motion tokens.
@@ -125,7 +142,7 @@
 
   /* Selection style */
   ::selection {
-    background-color: rgba(15, 61, 222, 0.18);
+    background-color: rgba(189, 230, 106, 0.28);
     color: var(--color-text-primary);
   }
 
@@ -138,11 +155,11 @@
     background: var(--color-bg);
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(15, 61, 222, 0.25);
+    background: var(--color-border);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(15, 61, 222, 0.55);
+    background: rgba(189, 230, 106, 0.55);
   }
 
   /* Interactive items cursor defaults */
@@ -242,10 +259,10 @@ html[data-preload='loading'] .hero-glyph {
 
 /* Glassmorphism helper */
 .glass {
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(16, 24, 48, 0.06);
+  background: rgba(34, 40, 35, 0.72);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid rgba(57, 65, 57, 0.8);
 }
 
 /* Subtle scroll indicator float */

@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { X, ArrowUpRight } from 'lucide-react';
+import { X, ArrowUpRight, Phone } from 'lucide-react';
+import { FaWhatsapp } from 'react-icons/fa';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { NAV_LINKS } from '../../config/constants';
+import { NAV_LINKS, CONTACT } from '../../config/constants';
+import BrandMark from '../brand/BrandMark';
 import { getLenis } from '../../lib/lenis';
 import { MQ, GSAP_EASE, DUR } from '../../config/motion';
 
@@ -171,15 +173,13 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         className="absolute inset-0 bg-app-bg flex flex-col"
       >
         {/* Overlay header */}
-        <div className="flex items-center justify-between px-6 md:px-10 h-20 shrink-0 border-b border-app-border/40">
-          <span className="text-base sm:text-lg font-black tracking-tight text-app-text-primary font-sans select-none">
-            Elia Abdel Massih<span className="text-app-accent">.</span>
-          </span>
+        <div className="flex items-center justify-between px-[clamp(16px,4vw,56px)] h-20 shrink-0 border-b border-app-border">
+          <BrandMark className="h-8 w-auto text-app-text-primary" />
           <button
             ref={closeRef}
             onClick={onClose}
             type="button"
-            className="p-2.5 rounded-full border border-app-border text-app-text-primary hover:text-app-accent hover:border-app-accent/50 focus:outline-none transition-colors duration-200"
+            className="inline-flex items-center justify-center h-11 w-11 rounded-full border border-app-border bg-app-surface text-app-text-primary hover:border-app-accent/60 transition-colors duration-200"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -189,7 +189,7 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         {/* Oversized link list */}
         <nav
           className="flex-1 flex flex-col justify-center px-6 md:px-10 max-w-7xl w-full mx-auto"
-          aria-label="Primary"
+          aria-label="Menu"
         >
           {NAV_LINKS.map((link, idx) => {
             const isActive = activeSection === link.id;
@@ -198,15 +198,15 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
                 <a
                   href={`#${link.id}`}
                   onClick={(e) => handleLinkClick(e, link.id)}
-                  aria-current={isActive ? 'true' : undefined}
-                  className={`menu-row group flex items-baseline gap-4 sm:gap-8 py-2 sm:py-3 font-black tracking-[-0.02em] font-sans transition-colors duration-200 ${
+                  aria-current={isActive ? 'location' : undefined}
+                  className={`menu-row group flex items-baseline gap-4 sm:gap-8 py-2 sm:py-3 font-bold tracking-[-0.045em] leading-[0.95] font-heading transition-colors duration-200 ${
                     isActive
                       ? 'text-app-accent'
                       : 'text-app-text-primary hover:text-app-accent'
                   }`}
                   style={{ fontSize: 'clamp(2rem, 8vw, 5rem)' }}
                 >
-                  <span className="font-mono text-[0.24em] font-bold text-app-accent tabular-nums">
+                  <span className="font-mono text-[0.26em] font-medium text-app-accent tabular-nums">
                     {String(idx + 1).padStart(2, '0')}
                   </span>
                   <span>{link.label}</span>
@@ -218,19 +218,28 @@ export const MobileMenu: React.FC<MobileMenuProps> = ({
         </nav>
 
         {/* Overlay footer meta */}
-        <div className="px-6 md:px-10 pb-10 pt-6 shrink-0 border-t border-app-border/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <p className="menu-meta text-[11px] font-mono uppercase tracking-[0.2em] text-app-text-secondary">
+        <div className="px-[clamp(16px,4vw,56px)] pb-10 pt-6 shrink-0 border-t border-app-border flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+          <p className="menu-meta text-[11px] font-mono uppercase tracking-[0.24em] text-app-text-secondary">
             Zahl&eacute;, Lebanon
           </p>
-          <a
-            href="https://wa.me/96176330429"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="menu-meta inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-[0.2em] text-app-accent hover:text-app-text-primary transition-colors duration-200"
-          >
-            Start a conversation
-            <ArrowUpRight className="w-4 h-4" />
-          </a>
+          <div className="menu-meta flex flex-wrap gap-2">
+            <a
+              href={CONTACT.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 h-12 px-5 rounded-full bg-app-accent text-app-on-accent text-sm font-semibold"
+            >
+              <FaWhatsapp aria-hidden="true" className="h-[18px] w-[18px]" />
+              WhatsApp me
+            </a>
+            <a
+              href={CONTACT.phoneHref}
+              className="inline-flex items-center gap-2 h-12 px-5 rounded-full border border-app-border text-app-text-primary text-sm font-medium hover:border-app-accent/60 transition-colors duration-200"
+            >
+              <Phone aria-hidden="true" className="h-4 w-4" />
+              {CONTACT.phoneDisplay}
+            </a>
+          </div>
         </div>
       </div>
     </div>

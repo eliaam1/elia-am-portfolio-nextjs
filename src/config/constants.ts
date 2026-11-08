@@ -21,6 +21,16 @@ export const NAV_LINKS = [
   { id: 'contact', label: 'Contact' },
 ] as const;
 
+/**
+ * The only two contact channels on the site (by owner decision: no email
+ * form). Single source for the nav CTA, mobile menu and Contact section.
+ */
+export const CONTACT = {
+  whatsappUrl: 'https://wa.me/96176330429',
+  phoneHref: 'tel:+96176330429',
+  phoneDisplay: '+961 76 330 429',
+} as const;
+
 export const ADMIN_SLUG = process.env.NEXT_PUBLIC_ADMIN_SLUG || 'manage-x7k9';
 
 // Centralized feature toggle: Set true to render experimental HeroLenisExperience
