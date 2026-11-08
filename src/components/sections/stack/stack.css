@@ -1,0 +1,153 @@
+/* Stack: the pinned deck (approved mock d5). On every screen size the section
+   holds while scroll steps through the needs: the counter rolls, the need
+   rises out of its lines, the lime blade crosses, the board's tiles flip like
+   a departures board, a giant outlined word drifts behind.
+   .sd.is-pinned is set by JS only when motion is allowed. Without it (reduced
+   motion, no JS) the same content is a plain stacked list. */
+
+.sd { position: relative; overflow: clip; border-top: 1px solid var(--color-line); }
+.sd-in { position: relative; padding-inline: var(--gutter); padding-block: clamp(20px, 5svh, 64px) clamp(56px, 9svh, 96px); }
+.sd-top { position: relative; z-index: 5; display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; }
+.sd-title {
+  margin-top: 12px; max-width: 12ch;
+  font-family: var(--font-heading); font-weight: 700; letter-spacing: -0.04em; line-height: 0.98;
+  font-size: clamp(32px, 4.6vw, 72px);
+  color: var(--color-text-primary);
+}
+.sd-lead { max-width: 340px; color: var(--color-text-secondary); font-size: 15px; line-height: 1.6; }
+
+/* ---------- fallback: stacked list ---------- */
+.sd-stage { margin-top: clamp(36px, 6svh, 64px); }
+.sd-copy { display: grid; gap: 56px; }
+.sd-step { display: grid; gap: 16px; }
+.sd-step-n { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em; color: var(--color-accent); }
+.sd-need {
+  max-width: 12ch;
+  font-family: var(--font-heading); font-weight: 700; letter-spacing: -0.04em; line-height: 1;
+  font-size: clamp(30px, 4.4vw, 76px);
+  color: var(--color-text-primary);
+}
+.sd-chips { display: flex; flex-wrap: wrap; gap: 10px 12px; list-style: none; margin: 0; padding: 0; }
+.sd-chip {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 10px 18px 10px 10px;
+  border: 1px solid var(--color-border); border-radius: 99px; background: var(--color-ink-2);
+  font-size: 15px; color: var(--color-soft);
+}
+.sd-chip .sd-lg { font-size: 28px; color: var(--color-text-primary); }
+.sd-peek { display: none; align-items: baseline; gap: 10px; color: var(--color-text-secondary); font-size: 14px; }
+.sd-peek .rd-label { color: var(--color-faint); }
+.sd-counter, .sd-board-wrap, .sd-ghosts, .sd-blade, .sd-segs, .sd-foot { display: none; }
+
+/* logos: brand mark, or a text badge where none exists */
+.sd-lg { display: inline-grid; place-items: center; flex: none; width: 1em; height: 1em; }
+.sd-lg svg { display: block; width: 100%; height: 100%; }
+.sd-mono {
+  padding: 0.35em 0.4em; border: 1.5px solid currentColor; border-radius: 6px;
+  font-family: var(--font-mono); font-weight: 600; font-size: 0.36em; letter-spacing: 0.06em; line-height: 1;
+}
+
+/* ---------- pinned: shared ---------- */
+.sd.is-pinned .sd-in { display: grid; grid-template-rows: auto 1fr auto; height: 100svh; padding-bottom: clamp(18px, 4svh, 44px); }
+.sd.is-pinned .sd-stage { position: relative; z-index: 5; display: grid; align-content: center; gap: clamp(16px, 3svh, 40px); margin: 0; }
+.sd.is-pinned .sd-copy { position: relative; display: block; grid-area: copy; }
+.sd.is-pinned .sd-step { position: absolute; inset: 0; align-content: center; gap: 14px; }
+.sd.is-pinned .sd-step-n { display: none; }
+/* the board shows the tools; the chip list stays for screen readers */
+.sd.is-pinned .sd-chips {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.sd.is-pinned .sd-peek { display: flex; }
+.sd.is-pinned .sd-counter {
+  display: flex; grid-area: counter; align-items: flex-start;
+  font-family: var(--font-heading); font-weight: 800; letter-spacing: -0.06em; line-height: 1;
+  color: var(--color-text-primary);
+}
+.sd-counter-win { height: 1em; overflow: hidden; }
+.sd-counter-col { display: flex; flex-direction: column; }
+.sd-counter-col span { display: block; height: 1em; }
+.sd-counter small {
+  margin: 0.3em 0 0 0.3em;
+  font-family: var(--font-mono); font-weight: 500; letter-spacing: 0;
+  font-size: max(0.2em, 12px); color: var(--color-text-secondary);
+}
+
+/* flip board */
+.sd.is-pinned .sd-board-wrap { display: block; grid-area: board; perspective: 1100px; }
+.sd-board { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(6px, 1vw, 12px); transform-style: preserve-3d; }
+.sd-slot { position: relative; aspect-ratio: 1 / 1; perspective: 600px; }
+.sd-face { position: absolute; inset: 0; backface-visibility: hidden; transform-origin: 50% 50%; }
+.sd-face-in {
+  display: grid; place-items: center; align-content: center; gap: clamp(6px, 1.2svh, 12px);
+  width: 100%; height: 100%;
+  border: 1px solid var(--color-border); border-radius: clamp(12px, 1.4vw, 18px);
+  background: linear-gradient(160deg, #1e2520 0%, var(--color-ink-2) 75%);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+  transition: border-color 0.25s var(--ease-out), transform 0.3s var(--ease-out);
+}
+/* the split-flap seam */
+.sd-face-in::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; background: rgba(0, 0, 0, 0.45); }
+.sd-face-in .sd-lg { font-size: clamp(26px, 3vw, 44px); color: var(--color-text-primary); transition: color 0.25s var(--ease-out); }
+.sd-face-in .sd-nm { padding-inline: 6px; text-align: center; line-height: 1.2; font-size: clamp(10px, 0.85vw, 12px); color: var(--color-text-secondary); }
+.sd-face.is-empty .sd-face-in { border-style: dashed; border-color: var(--color-line); background: transparent; }
+.sd-face.is-empty .rd-cut { background: var(--color-line); }
+@media (hover: hover) and (pointer: fine) {
+  .sd-slot:hover .sd-face:not(.is-empty) .sd-face-in { border-color: var(--color-accent); transform: translateY(-4px); }
+  .sd-slot:hover .sd-face:not(.is-empty) .sd-lg { color: var(--color-accent); }
+}
+
+/* ghost word, fitted to the full width by JS */
+.sd.is-pinned .sd-ghosts { position: absolute; inset: 0; z-index: 0; display: block; pointer-events: none; }
+.sd-ghost {
+  position: absolute; left: 50%; top: 58%;
+  font-family: var(--font-heading); font-weight: 800; text-transform: uppercase; letter-spacing: -0.04em; line-height: 0.8; white-space: nowrap;
+  color: transparent; -webkit-text-stroke: 1px #353e36;
+}
+
+/* the blade */
+.sd.is-pinned .sd-blade {
+  position: absolute; top: 0; bottom: 0; left: 0; z-index: 8; display: block;
+  width: clamp(150px, 22vw, 380px);
+  background: var(--color-accent);
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+  transform: translateX(-60vw);
+  pointer-events: none;
+}
+
+/* scroll indicator + jump buttons */
+.sd.is-pinned .sd-segs { position: relative; z-index: 9; display: grid; grid-template-columns: repeat(6, 1fr); gap: clamp(4px, 1vw, 10px); }
+.sd.is-pinned .sd-foot { position: relative; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
+.sd-seg { all: unset; display: grid; gap: 10px; padding-block: 8px 2px; cursor: pointer; }
+.sd-seg:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; border-radius: 2px; }
+.sd-seg-bar { position: relative; height: 2px; overflow: hidden; background: var(--color-border); }
+.sd-seg-fill { position: absolute; inset: 0; background: var(--color-accent); transform: scaleX(0); transform-origin: 0 50%; }
+.sd-seg-label { font-size: 13px; color: var(--color-faint); transition: color 0.25s var(--ease-out); }
+.sd-seg[aria-current='step'] .sd-seg-label { color: var(--color-text-primary); }
+@media (hover: hover) and (pointer: fine) { .sd-seg:hover .sd-seg-label { color: var(--color-accent); } }
+.sd-now { color: var(--color-soft); }
+
+/* ---------- pinned: desktop ---------- */
+@media (min-width: 1024px) {
+  .sd.is-pinned .sd-stage { grid-template-columns: max-content 5fr 4.4fr; grid-template-areas: 'counter copy board'; align-items: center; gap: clamp(28px, 3.4vw, 56px); }
+  .sd.is-pinned .sd-counter { font-size: clamp(110px, 12.5vw, 220px); }
+  .sd.is-pinned .sd-copy { height: min(42svh, 340px); }
+  .sd.is-pinned .sd-need { font-size: clamp(34px, 4.2vw, 74px); }
+  .sd-board { max-width: 500px; margin-left: auto; }
+}
+/* ---------- pinned: tablet + phone ---------- */
+@media (max-width: 1023px) {
+  .sd.is-pinned .sd-stage { grid-template-columns: auto 1fr; grid-template-areas: 'counter copy' 'board board'; align-items: center; column-gap: clamp(14px, 3vw, 28px); }
+  .sd.is-pinned .sd-counter { align-self: start; font-size: clamp(54px, 15vw, 120px); }
+  .sd.is-pinned .sd-copy { height: clamp(140px, 23svh, 240px); }
+  .sd.is-pinned .sd-need { font-size: clamp(26px, 6.6vw, 56px); }
+  .sd-board { max-width: 640px; }
+  .sd-face-in .sd-lg { font-size: clamp(28px, 5.6vw, 46px); }
+  .sd-face-in .sd-nm { font-size: clamp(10px, 1.6vw, 13px); }
+  .sd-seg-label { display: none; }
+}
+@media (max-width: 640px) {
+  .sd.is-pinned .sd-lead { display: none; }
+  .sd.is-pinned .sd-board { max-width: none; }
+  .sd.is-pinned .sd-counter small { display: none; }
+  .sd-foot .rd-cue-track { height: 28px; }
+}

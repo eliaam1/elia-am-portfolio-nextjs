@@ -8,8 +8,8 @@ import ScrollProgress from '../components/layout/ScrollProgress';
 import ScrollPath from '../components/layout/ScrollPath';
 import SectionHeading from '../components/layout/SectionHeading';
 import HeroSplit from '../components/sections/HeroSplit';
-import About from '../components/sections/About';
-import Skills from '../components/sections/Skills';
+import Profile from '../components/sections/profile/Profile';
+import StackDeck from '../components/sections/stack/StackDeck';
 import Services from '../components/sections/Services';
 import Statement from '../components/sections/Statement';
 import Projects from '../components/sections/Projects';
@@ -19,7 +19,6 @@ import Contact from '../components/sections/Contact';
 import Footer from '../components/layout/Footer';
 import {
   getProjects,
-  getSkills,
   getExperience,
   getTestimonials,
   getServices,
@@ -29,7 +28,6 @@ import {
 export default function Home() {
   const settings = getSiteSettings();
   const projects = getProjects();
-  const skills = getSkills();
   const services = getServices();
   const experience = getExperience();
   const testimonials = getTestimonials();
@@ -78,30 +76,10 @@ export default function Home() {
         */}
         <HeroSplit />
 
-        {/* 01 / PROFILE — biography, metrics and portrait, then the stack. */}
-        <section id="profile" className="relative overflow-x-clip">
-          {/*
-            About is deliberately NOT wrapped in a container: it carries its
-            own full-bleed ambient WebGL field, and boxing it inside
-            max-w-6xl would stop that field being full-bleed. It also still
-            carries the chapter's "01 / PROFILE" overline and its Wave B
-            split-heading choreography.
-          */}
-          <About settings={settings} loading={false} />
-
-          <div className="w-full max-w-6xl mx-auto px-6 md:px-10 pt-8 pb-20 md:pb-28">
-            <SectionHeading
-              variant="sub"
-              overline="STACK"
-              title={
-                <>
-                  Stack &amp; Technologies<span className="text-app-accent">.</span>
-                </>
-              }
-              intro="Core tools, languages and architecture patterns I reach for when building modern digital products."
-            />
-            <Skills skills={skills} loading={false} />
-          </div>
+        {/* 01 / PROFILE — statement, bio, career log and services, then the stack deck. */}
+        <section id="profile" aria-label="Profile" className="relative overflow-x-clip">
+          <Profile />
+          <StackDeck />
         </section>
 
         {/* 02 / WORK — capabilities, the philosophy beat, then selected work. */}

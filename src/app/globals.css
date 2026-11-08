@@ -91,6 +91,17 @@
   --color-on-accent: #151816;   /* Text/icons placed on lime or soft lime */
   --color-accent-gradient: linear-gradient(135deg, #a3cc52, #d8ebaf);
 
+  /* Redesign shades (Profile, Stack): text steps and hairlines between the
+     tokens above. --color-line is decorative only. */
+  --color-ink-2: #101311;       /* recessed panels (career log, tiles) */
+  --color-soft: #c9ccc3;        /* body copy */
+  --color-dim: #7d867b;         /* resting list items */
+  --color-faint: #5d665c;       /* indices, hashes */
+  --color-line: #262d27;        /* hairlines */
+  /* The EAM blade: tan(22.6deg) = 0.416, as a clip-path inset. */
+  --slant: 41.6%;
+  --gutter: clamp(16px, 4vw, 56px);
+
   /*
    * Motion tokens.
    *
@@ -451,6 +462,12 @@ html[data-preload='loading'] .hero-glyph {
   }
 }
 
+/* Lenis recommended base. */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: hidden; }
+
 #hero[data-sweep='on'] {
   height: 260svh;
   /* Profile sits under this box; only the hero's own CTAs opt back in. */
@@ -793,4 +810,47 @@ html[data-preload='loading'] .hero-glyph {
     height: auto;
     aspect-ratio: 16 / 10;
   }
+}
+
+/* ================================================================== *
+ * Redesign primitives shared by Profile and Stack.
+ *   .rd-label   mono eyebrow; <b> inside it is lime
+ *   .rd-cut     the EAM blade as a small parallelogram mark
+ *   .rd-cue     "scroll" cue: a line running down a short track (CSS only)
+ * ================================================================== */
+.rd-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+.rd-label b { color: var(--color-accent); font-weight: 600; }
+
+.rd-cut {
+  display: inline-block;
+  flex: none;
+  width: 12px;
+  height: 20px;
+  background: var(--color-border);
+  clip-path: polygon(var(--slant) 0, 100% 0, calc(100% - var(--slant)) 100%, 0 100%);
+}
+
+.rd-cue { display: inline-flex; align-items: center; gap: 12px; }
+.rd-cue-track { position: relative; width: 1px; height: 44px; background: var(--color-border); overflow: hidden; }
+.rd-cue-track::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-accent);
+  transform: translateY(-100%);
+  animation: rd-cue 1.8s var(--ease-in-out) infinite;
+}
+@keyframes rd-cue {
+  0% { transform: translateY(-100%); }
+  55% { transform: translateY(0); }
+  100% { transform: translateY(100%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-cue-track::after { animation: none; transform: none; opacity: 0.6; }
 }

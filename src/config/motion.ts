@@ -378,9 +378,13 @@ export const PRELOADER_CONFIG = {
  * ------------------------------------------------------------------ */
 
 export const LENIS_CONFIG = {
-  lerp: 0.11,
+  /*
+   * 0.075: movyo's heavier glide, approved on the Profile/Stack mocks. Still a
+   * lerp (it tracks the wheel), just with a longer, softer settle than 0.11.
+   */
+  lerp: 0.075,
   /** Wheel delta multiplier. Above 1.2 the page starts to feel slippery. */
-  wheelMultiplier: 1,
+  wheelMultiplier: 0.9,
   /** Native momentum is preserved on touch; Lenis does not drive it. */
   touchMultiplier: 1.6,
 } as const;
