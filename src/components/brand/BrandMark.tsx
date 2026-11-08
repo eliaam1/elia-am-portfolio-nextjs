@@ -26,7 +26,7 @@ interface BrandMarkProps {
   bladeColor?: string;
 }
 
-const LETTER_E = (
+export const LETTER_E = (
   <>
     <rect x="0" y="10" width="14" height="60" />
     <rect x="0" y="10" width="36" height="12" />
@@ -35,17 +35,18 @@ const LETTER_E = (
   </>
 );
 
-const LETTER_A = <polygon points="30,70 55,10 69,10 94,70 80,70 62,26.8 44,70" />;
+export const LETTER_A = <polygon points="30,70 55,10 69,10 94,70 80,70 62,26.8 44,70" />;
 
-const LETTER_M = (
+export const LETTER_M = (
   <polygon
     transform="translate(5,0)"
     points="98,70 98,10 114,10 129,40 144,10 160,10 160,70 146,70 146,36 134,60 124,60 112,36 112,70"
   />
 );
 
-const FULL_BLADE = '64.83,-6 67.83,-6 106.17,86 103.17,86';
+export const FULL_BLADE = '64.83,-6 67.83,-6 106.17,86 103.17,86';
 const GLYPH_BLADE = '69,4 72,4 102,76 99,76';
+export const FULL_VIEWBOX = '-6 -10 178 100';
 
 export function BrandMark({
   variant = 'full',
@@ -71,7 +72,7 @@ export function BrandMark({
   }
 
   return (
-    <svg viewBox="-6 -10 178 100" className={className} {...a11y}>
+    <svg viewBox={FULL_VIEWBOX} className={className} {...a11y}>
       <g fill="currentColor">
         {LETTER_E}
         {LETTER_A}

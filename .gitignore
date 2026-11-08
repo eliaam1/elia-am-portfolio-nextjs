@@ -50,3 +50,6 @@ LLM_PROJECT_CONTEXT.md
 2026-08-18-003636-claude.txt
 animated-slideshow.tsx.txt
 demo.tsx.txt
+
+# design mockups (local only)
+mockups/

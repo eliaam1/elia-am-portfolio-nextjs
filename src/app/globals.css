@@ -218,6 +218,7 @@ html[data-preload='loading'] body {
 html[data-preload='loading'] .hero-line,
 html[data-preload='loading'] .hero-rise,
 html[data-preload='loading'] .hero-slide,
+html[data-preload='loading'] .hero-wipe,
 html[data-preload='loading'] .hero-glyph {
   animation-play-state: paused;
 }
@@ -406,6 +407,102 @@ html[data-preload='loading'] .hero-glyph {
   .hero-glyph {
     animation: hero-fade-in 300ms var(--ease-out) both;
     animation-delay: 0ms;
+  }
+}
+
+/* ================================================================== *
+ * Split hero — the lime blade.
+ *
+ * .hero-wipe   entrance: the blade slides up into place, bottom first.
+ * .hero-band   server-rendered resting shape, so the first paint already
+ *              shows the blade. useBladeSweep replaces it with exact
+ *              pixel geometry (inline clip-path) on mount.
+ * data-sweep   set by useBladeSweep only when motion is allowed. It
+ *              lengthens the hero so its sticky stage pins, and pulls
+ *              Profile up underneath so the blade can wipe onto it. Without
+ *              JS, or under reduced motion, neither rule applies and the
+ *              page is a plain 100svh hero followed by Profile.
+ * ================================================================== */
+
+@keyframes hero-wipe-in {
+  from { clip-path: inset(100% 0 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+.hero-wipe {
+  animation: hero-wipe-in 760ms var(--ease-snap) both;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-wipe {
+    animation: hero-fade-in 300ms var(--ease-out) both;
+    animation-delay: 0ms;
+  }
+}
+
+.hero-band {
+  clip-path: polygon(67% 42%, 97% 42%, 45% 100%, 15% 100%);
+}
+
+@media (min-width: 1024px) {
+  .hero-band {
+    clip-path: polygon(80.1% 11%, 95.3% 11%, 72.2% 100%, 57% 100%);
+  }
+}
+
+#hero[data-sweep='on'] {
+  height: 260svh;
+  /* Profile sits under this box; only the hero's own CTAs opt back in. */
+  pointer-events: none;
+}
+
+#hero[data-sweep='on'] + #profile {
+  margin-top: -100svh;
+}
+
+/* ================================================================== *
+ * EAM loader intro — CSS so it starts on first paint, before hydration.
+ * Outlines draw (pathLength=1), letters fill, then the blade slices down
+ * through the A. EamLoader only drives the counter and the exit.
+ * ================================================================== */
+
+@keyframes loader-draw { to { stroke-dashoffset: 0; } }
+@keyframes loader-fill { to { fill-opacity: 1; stroke-opacity: 0; } }
+@keyframes loader-slice {
+  from { clip-path: inset(0 0 100% 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+.loader-shape > * {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  fill-opacity: 0;
+  animation:
+    loader-draw 900ms cubic-bezier(0.45, 0, 0.55, 1) calc(var(--i, 0) * 60ms) forwards,
+    loader-fill 350ms ease-out 780ms forwards;
+}
+
+.loader-blade {
+  clip-path: inset(0 0 100% 0);
+  animation: loader-slice 420ms cubic-bezier(0.65, 0, 0.35, 1) 950ms forwards;
+}
+
+.loader-meta {
+  opacity: 0;
+  animation: hero-fade-in 500ms ease-out 200ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loader-shape > *,
+  .loader-blade,
+  .loader-meta {
+    animation: none;
+    stroke-dashoffset: 0;
+    fill-opacity: 1;
+    stroke-opacity: 0;
+    clip-path: none;
+    opacity: 1;
   }
 }
 

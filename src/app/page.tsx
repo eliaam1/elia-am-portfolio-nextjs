@@ -1,16 +1,13 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import WebGLPreloader from '../components/layout/WebGLPreloader';
+import EamLoader from '../components/layout/EamLoader';
 import Navbar from '../components/layout/Navbar';
 import CustomCursor from '../components/layout/CustomCursor';
-import TravellingPortrait from '../components/ui/TravellingPortrait';
 import ScrollProgress from '../components/layout/ScrollProgress';
 import ScrollPath from '../components/layout/ScrollPath';
 import SectionHeading from '../components/layout/SectionHeading';
-import Hero from '../components/sections/Hero';
-import HeroLenisExperience from '../components/sections/HeroLenisExperience';
-import { USE_EXPERIMENTAL_HERO } from '../config/constants';
+import HeroSplit from '../components/sections/HeroSplit';
 import About from '../components/sections/About';
 import Skills from '../components/sections/Skills';
 import Services from '../components/sections/Services';
@@ -53,23 +50,12 @@ export default function Home() {
       </a>
 
       {/* Global Navigation & Spatial Indicator Shell */}
-      <WebGLPreloader />
+      <EamLoader />
       <ScrollProgress />
       <CustomCursor />
       <Navbar />
       <ScrollPath />
 
-      {/*
-        Shared-element portrait that flies from the Hero frame into the
-        About frame. Deliberately outside <main>: it is permanently
-        position:fixed and has to draw across two sections, so it must not
-        live inside either of their stacking contexts.
-
-        It self-disables on mobile, under reduced motion, and if either
-        [data-portrait-slot] is missing -- in every one of those cases both
-        real portraits simply render normally.
-      */}
-      <TravellingPortrait />
 
       {/*
         FOUR chapters plus the hero, down from nine sections.
@@ -85,12 +71,12 @@ export default function Home() {
         those same strings are the useScrollSpy anchors.
       */}
       <main id="main-content" tabIndex={-1} className="focus:outline-none">
-        {/* Hero — owns its own id="hero" internally. */}
-        {USE_EXPERIMENTAL_HERO ? (
-          <HeroLenisExperience settings={settings} loading={false} />
-        ) : (
-          <Hero settings={settings} loading={false} />
-        )}
+        {/*
+          Hero — owns id="hero". Must stay the element immediately before
+          #profile: the blade-sweep hand-off pulls Profile up under the hero
+          with a `#hero + #profile` rule (globals.css).
+        */}
+        <HeroSplit />
 
         {/* 01 / PROFILE — biography, metrics and portrait, then the stack. */}
         <section id="profile" className="relative overflow-x-clip">

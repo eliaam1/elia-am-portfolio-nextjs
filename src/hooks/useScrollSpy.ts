@@ -33,6 +33,17 @@ export const useScrollSpy = (ids: readonly string[], _offset?: number): string =
     if (typeof window === 'undefined' || stableIds.length === 0) return;
 
     const triggers: ScrollTrigger[] = [];
+    /*
+     * Every section currently inside its window. Sections can overlap in
+     * scroll space (the hero's blade-sweep pulls Profile up underneath it),
+     * so reacting only to "became active" never hands control back when the
+     * later section leaves. The winner is the LAST active id in page order.
+     */
+    const active = new Set<string>();
+    const pick = () => {
+      const winner = [...stableIds].reverse().find((id) => active.has(id));
+      if (winner) setActiveId(winner);
+    };
 
     // One frame of grace so sections have laid out before measuring.
     const raf = requestAnimationFrame(() => {
@@ -46,7 +57,9 @@ export const useScrollSpy = (ids: readonly string[], _offset?: number): string =
             start: 'top 45%',
             end: 'bottom 45%',
             onToggle: (self) => {
-              if (self.isActive) setActiveId(id);
+              if (self.isActive) active.add(id);
+              else active.delete(id);
+              pick();
             },
           })
         );

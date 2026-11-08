@@ -53,7 +53,10 @@ export const ScrollPath: React.FC = () => {
   return (
     <div
       ref={railRef}
-      className="fixed left-6 xl:left-8 2xl:left-12 top-1/2 -translate-y-1/2 h-[50vh] w-6 z-40 hidden xl:flex flex-col items-center pointer-events-none select-none"
+      className={`fixed left-6 xl:left-8 2xl:left-12 top-1/2 -translate-y-1/2 h-[50vh] w-6 z-40 hidden xl:flex flex-col items-center pointer-events-none select-none transition-[opacity,visibility] duration-500 ${
+        // The hero's name runs to the left edge; the rail joins from Profile on.
+        activeSectionId === 'hero' ? 'invisible opacity-0' : 'visible opacity-100'
+      }`}
     >
       {/* Vertical Path Rail */}
       <div className="relative h-full w-[2px] bg-app-border/30 rounded-full flex flex-col justify-between items-center pointer-events-auto">

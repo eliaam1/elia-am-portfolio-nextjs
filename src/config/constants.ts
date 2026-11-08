@@ -81,9 +81,11 @@ export const PRELOAD_FAILSAFE_MS = 8000;
 /**
  * Floor on how long the loader stays up. Without it, a warm cache resolves
  * every progress source almost instantly and the loader reads as a flash of
- * unexplained content rather than an intentional entrance.
+ * unexplained content rather than an intentional entrance. 1500 matches the
+ * EAM loader intro (draw, fill, blade slice), so the counter lands on 100
+ * as the blade finishes.
  */
-export const PRELOAD_MIN_MS = 900;
+export const PRELOAD_MIN_MS = 1500;
 
 /**
  * Window event announcing that the loader is gone.
