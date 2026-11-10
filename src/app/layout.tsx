@@ -47,42 +47,29 @@ export const viewport: Viewport = {
   colorScheme: "dark",
 };
 
+/*
+ * Private by owner decision: the portfolio is only for people given the URL.
+ * No search indexing, no image indexing, no cached copies or snippets, and no
+ * social-card metadata. next.config.ts sends the same rule as an X-Robots-Tag
+ * header on every file (images and the CV PDF included), and app/robots.ts
+ * shuts out image and AI crawlers.
+ */
 export const metadata: Metadata = {
-  title: "Elia Abdel Massih | Full Stack Developer & AI Specialist",
-  description: "Personal portfolio of Elia Abdel Massih — Full Stack Developer & AI Specialist specializing in React, Next.js, TypeScript, Shopify Liquid, enterprise .NET, and high-performance web applications.",
-  keywords: [
-    "Elia Abdel Massih",
-    "Full Stack Developer",
-    "AI Specialist",
-    "React Developer",
-    "Next.js Portfolio",
-    "Shopify Developer",
-    ".NET Developer",
-    "TypeScript",
-    "Lebanon Developer"
-  ],
-  authors: [{ name: "Elia Abdel Massih" }],
-  creator: "Elia Abdel Massih",
+  title: "Elia Abdel Massih",
   icons: {
     icon: "/brand/eam-favicon.svg",
   },
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://elia-portfolio.vercel.app",
-    title: "Elia Abdel Massih | Full Stack Developer & AI Specialist",
-    description: "Full Stack Developer with hands-on Shopify expertise, enterprise .NET & React architecture, and AI-assisted workflows.",
-    siteName: "Elia Abdel Massih Portfolio",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Elia Abdel Massih | Full Stack Developer & AI Specialist",
-    description: "Full Stack Developer with hands-on Shopify expertise, enterprise .NET & React architecture, and AI-assisted workflows.",
-    creator: "@elia_am",
-  },
   robots: {
-    index: true,
-    follow: true,
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+      "max-image-preview": "none",
+      "max-snippet": 0,
+    },
   },
 };
 
