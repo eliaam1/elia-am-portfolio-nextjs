@@ -10,7 +10,7 @@ import SectionHeading from '../components/layout/SectionHeading';
 import HeroSplit from '../components/sections/HeroSplit';
 import Profile from '../components/sections/profile/Profile';
 import StackDeck from '../components/sections/stack/StackDeck';
-import Statement from '../components/sections/Statement';
+import Statement from '../components/sections/statement/Statement';
 import WorkDimension from '../components/sections/work/WorkDimension';
 import Experience from '../components/sections/Experience';
 import Testimonials from '../components/sections/Testimonials';
@@ -78,13 +78,19 @@ export default function Home() {
         </section>
 
         {/*
+          "What I do" — one line, then the camera pushes through it into the
+          dark and leaves a light at the centre, which the Dimension's own
+          opening light takes over. Must stay directly before #work.
+        */}
+        <Statement />
+
+        {/*
           02 / WORK — the Digital Dimension (selected work, tagged with the
           services each project took; the old Services list was folded into
-          it), then the philosophy beat.
+          it). It ends on the contact portal.
         */}
         <section id="work" className="relative overflow-x-clip bg-app-bg">
           <WorkDimension />
-          <Statement />
         </section>
 
         {/* 03 / JOURNEY — timeline, then endorsements. */}

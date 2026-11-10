@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { FRAGMENT_KEYS, fragmentUrl, type WorkProject } from '../workData';
 import { buildCompositions, mkArchitecture, mkGrid, mkParticles, type TexMap } from './compositions';
-import { COLLAPSE_DEPTH, OPENING_EXIT_Z, PROJECT_GAP, projectZ } from './timing';
+import { COLLAPSE_DEPTH, OPENING_EXIT_Z, PORTAL_DISTANCE, PROJECT_GAP, projectZ } from './timing';
 import { applyItem, beaconRadius, clamp01, glowTexture, itemOf, lerp, mkBeacon, setBeacon, type SharedUniforms } from './materials';
 
 const BG = 0x050605;
@@ -24,6 +24,8 @@ export interface DimState {
   orbit: number;
   collapse: number;
   portal: number;
+  /** 0..1 the camera's dive from wherever it is to the portal. */
+  dive: number;
   p: ProjectState[];
 }
 export interface Layout {
@@ -116,6 +118,8 @@ export async function createDimension(canvas: HTMLCanvasElement, projects: reado
   const U: SharedUniforms = { uVel: { value: 0 }, uTime: { value: 0 } };
   const n = projects.length;
   const cEnd = new THREE.Vector3(0, 0, projectZ(n - 1) - COLLAPSE_DEPTH);
+  // where the finale's dive brings the camera to rest, facing the portal
+  const diveZ = cEnd.z + PORTAL_DISTANCE;
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(BG, 40, 125);
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 420);
@@ -145,7 +149,7 @@ export async function createDimension(canvas: HTMLCanvasElement, projects: reado
   };
   resize();
 
-  const state: DimState = { dot: 0, ring: 0, env: 0, cz: 30, orbit: 0, collapse: 0, portal: 0, p: projects.map(() => ({ in: 0, fly: 0 })) };
+  const state: DimState = { dot: 0, ring: 0, env: 0, cz: 30, orbit: 0, collapse: 0, portal: 0, dive: 0, p: projects.map(() => ({ in: 0, fly: 0 })) };
   const portalRing = () => clamp01((state.portal - 0.25) / 0.75) * L.portal;
   const activeIndex = () => Math.min(n - 1, Math.max(0, Math.floor((OPENING_EXIT_Z - state.cz) / PROJECT_GAP)));
 
@@ -209,8 +213,8 @@ export async function createDimension(canvas: HTMLCanvasElement, projects: reado
     const framing = S.env * (1 - S.collapse);
     const bx = (L.tx + Math.sin(S.orbit) * 5) * framing + pointer.x * 1.4;
     const by = L.ty * framing + pointer.y * 0.9;
-    camera.position.set(lerp(bx, mainW.x, f), lerp(by, mainW.y, f), S.cz);
-    look.set(lerp(L.tx * framing, mainW.x, f), lerp(L.ty * framing, mainW.y, f), S.cz - 20);
+    camera.position.set(lerp(bx, mainW.x, f), lerp(by, mainW.y, f), lerp(S.cz, diveZ, S.dive));
+    look.set(lerp(L.tx * framing, mainW.x, f), lerp(L.ty * framing, mainW.y, f), camera.position.z - 20);
     camera.lookAt(look);
     camera.fov = L.fov + vel * 5;
     camera.updateProjectionMatrix();

@@ -7,7 +7,7 @@ import { SplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 import { getLenis } from '../../../lib/lenis';
 import type { Dimension, Pointer } from './scene/createDimension';
-import { COLLAPSE_DEPTH, DIM_TIMING, OPENING_EXIT_Z, PORTAL_DISTANCE, projectZ, SCREENS_PER_UNIT } from './scene/timing';
+import { DIM_TIMING, FINALE_REVERSE_SPEED, OPENING_EXIT_Z, projectZ, SCREENS_PER_UNIT } from './scene/timing';
 import { WORK_PROJECTS } from './workData';
 
 if (typeof window !== 'undefined') {
@@ -17,7 +17,16 @@ if (typeof window !== 'undefined') {
 const MOTION_OK = '(prefers-reduced-motion: no-preference)';
 const FINE_POINTER = '(hover: hover) and (pointer: fine)';
 const N = WORK_PROJECTS.length;
-const TOTAL = DIM_TIMING.open + N * DIM_TIMING.seg + DIM_TIMING.end;
+/** Start of the last project's segment, in units. */
+const LAST_START = DIM_TIMING.open + (N - 1) * DIM_TIMING.seg;
+/** The finale starts as the last project's info fades out (scroll units). */
+const FINALE_AT = LAST_START + DIM_TIMING.seg * 0.72;
+/** Scroll length of the pinned journey, in units. */
+const TOTAL = LAST_START + DIM_TIMING.seg * DIM_TIMING.last + DIM_TIMING.hold;
+/** The opening's beats were authored over 1.5 units; this scales them to DIM_TIMING.open. */
+const OPEN_K = DIM_TIMING.open / 1.5;
+/** Seconds of scroll smoothing on top of Lenis; low so the scene answers the wheel quickly. */
+const SCRUB = 0.5;
 /** Lenis velocity (px per frame) that counts as "full speed" for the scene. */
 const FULL_SPEED = 30;
 /** Gap between the 3D portal ring and the HTML text ring around it (px). */
@@ -54,18 +63,19 @@ function makeSplits(root: HTMLElement): Splits {
 function openingBeats(tl: gsap.core.Timeline, dim: Dimension, ui: UiState, root: HTMLElement): void {
   const S = dim.state;
   const sub = root.querySelector('.wd-sub');
-  tl.to(S, { dot: 1, duration: 0.3, ease: 'power2.out' }, 0)
-    .to(S, { ring: 1, duration: 0.55, ease: 'power2.out' }, 0.22)
-    .to(ui, { title: 1, duration: 0.5, ease: 'power2.out' }, 0.32)
-    .to(sub, { opacity: 1, duration: 0.2 }, 0.62)
-    .to(sub, { opacity: 0, duration: 0.15 }, 0.92)
-    .to(S, { env: 1, duration: 0.6 }, 0.6)
-    .to(ui, { pass: 1, duration: 0.55, ease: 'power2.in' }, 0.9)
-    .to(S, { cz: OPENING_EXIT_Z, duration: 0.6, ease: 'power2.in' }, 0.9)
-    .to(root.querySelector('.wd-hud'), { opacity: 1, duration: 0.2 }, 1.3);
+  const k = OPEN_K;
+  tl.to(S, { dot: 1, duration: 0.3 * k, ease: 'power2.out' }, 0)
+    .to(S, { ring: 1, duration: 0.55 * k, ease: 'power2.out' }, 0.22 * k)
+    .to(ui, { title: 1, duration: 0.5 * k, ease: 'power2.out' }, 0.32 * k)
+    .to(sub, { opacity: 1, duration: 0.2 * k }, 0.62 * k)
+    .to(sub, { opacity: 0, duration: 0.15 * k }, 0.92 * k)
+    .to(S, { env: 1, duration: 0.6 * k }, 0.6 * k)
+    .to(ui, { pass: 1, duration: 0.55 * k, ease: 'power2.in' }, 0.9 * k)
+    .to(S, { cz: OPENING_EXIT_Z, duration: 0.6 * k, ease: 'power2.in' }, 0.9 * k)
+    .to(root.querySelector('.wd-hud'), { opacity: 1, duration: 0.2 * k }, 1.3 * k);
 }
 
-/** 2-3. Each project: approach, entrance, info, slow orbit, then the fly-through. */
+/** 2-3. Each project: approach, entrance, info, slow orbit, then the fly-through (the last one has none: the finale takes over). */
 function projectBeats(tl: gsap.core.Timeline, dim: Dimension, root: HTMLElement, splits: Splits): void {
   const S = dim.state;
   const SEG = DIM_TIMING.seg;
@@ -84,29 +94,41 @@ function projectBeats(tl: gsap.core.Timeline, dim: Dimension, root: HTMLElement,
       .fromTo(splits.names[i].chars, { rotationX: -95, yPercent: 60, z: -160, opacity: 0 }, { rotationX: 0, yPercent: 0, z: 0, opacity: 1, duration: SEG * 0.12, ease: 'power3.out', stagger: SEG * 0.006 }, s + SEG * 0.27)
       .fromTo(all(po, '.wd-meta, .wd-line, .wd-tag, .wd-btn'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: SEG * 0.08, stagger: SEG * 0.012, ease: 'power2.out' }, s + SEG * 0.33)
       .to(po, { opacity: 0, y: -30, duration: SEG * 0.06 }, s + SEG * 0.72)
-      .set(po, { visibility: 'hidden' }, s + SEG * 0.78)
-      // the screen turns to face you, fills the view, and you pass through it
-      .to(S, { orbit: 0, duration: SEG * 0.12 }, s + SEG * 0.75)
+      .set(po, { visibility: 'hidden' }, s + SEG * 0.78);
+    if (i === N - 1) return;
+    // the screen turns to face you, fills the view, and you pass through it
+    tl.to(S, { orbit: 0, duration: SEG * 0.12 }, s + SEG * 0.75)
       .to(P, { fly: 1, duration: SEG * 0.22, ease: 'power2.inOut' }, s + SEG * 0.75)
       .to(S, { cz: z - 1.5, duration: SEG * 0.25, ease: 'power3.in' }, s + SEG * 0.75);
   });
 }
 
-/** 4. The world collapses into light; the portal opens on the contact finale. */
-function finaleBeats(tl: gsap.core.Timeline, dim: Dimension, root: HTMLElement, splits: Splits): void {
+/**
+ * 4. The world collapses into light and the portal opens on the contact finale.
+ * A paused timeline in seconds, not scroll: it plays once the last project's
+ * info fades, and rewinds if you scroll back. The camera dives with `dive`, a
+ * blend on top of the scrubbed `cz`, so the two timelines never fight.
+ */
+function makeFinale(dim: Dimension, root: HTMLElement, splits: Splits): gsap.core.Timeline {
   const S = dim.state;
-  const e = DIM_TIMING.open + N * DIM_TIMING.seg;
-  const portalZ = projectZ(N - 1) - COLLAPSE_DEPTH;
-  tl.to(S, { collapse: 1, duration: 0.75, ease: 'power2.inOut' }, e)
-    .to(S, { cz: portalZ + PORTAL_DISTANCE, duration: 0.75, ease: 'power2.inOut' }, e)
-    .to(root.querySelector('.wd-hud'), { opacity: 0, duration: 0.2 }, e + 0.4)
-    .to(S, { portal: 1, duration: 0.55, ease: 'power2.out' }, e + 0.6)
-    .set(root.querySelector('.wd-portal'), { visibility: 'visible' }, e + 0.78)
-    .fromTo(root.querySelector('.wd-ring'), { xPercent: -50, yPercent: -50, opacity: 0, scale: 0.86, rotation: -40 }, { xPercent: -50, yPercent: -50, opacity: 1, scale: 1, rotation: 0, duration: 0.35, ease: 'power3.out' }, e + 0.78)
-    .fromTo(root.querySelector('.wd-pill'), { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.18, ease: 'power2.out' }, e + 0.82)
-    .fromTo(splits.portal.chars, { yPercent: 115, rotationX: -85, opacity: 0 }, { yPercent: 0, rotationX: 0, opacity: 1, duration: 0.3, stagger: 0.012, ease: 'power3.out' }, e + 0.86)
-    .fromTo(all(root, '.wd-portal-sub, .wd-ctas > *'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.2, stagger: 0.05, ease: 'power2.out' }, e + 1.05)
-    .to({}, { duration: 0.3 }, TOTAL - 0.3);
+  const lastPo = all(root, '.wd-po')[N - 1];
+  return gsap
+    .timeline({ paused: true, defaults: { ease: 'none' }, onReverseComplete: () => gsap.set(lastPo, { clearProps: 'filter' }) })
+    .to(S, { collapse: 1, duration: 0.9, ease: 'power2.inOut' }, 0)
+    .to(S, { dive: 1, duration: 0.9, ease: 'power2.inOut' }, 0)
+    // explicit start value: the scrub may not have shown the hud yet when this first renders
+    .fromTo(root.querySelector('.wd-hud'), { opacity: 1 }, { opacity: 0, duration: 0.25, immediateRender: false }, 0.15)
+    // The last project's info also fades on scroll, but the scrub lags behind the finale.
+    // A filter clears it on the finale's clock without touching the opacity the scrub owns;
+    // it is removed again once rewound (a filter would turn off the tags' backdrop blur).
+    .fromTo(lastPo, { filter: 'opacity(1)' }, { filter: 'opacity(0)', duration: 0.25, immediateRender: false }, 0)
+    // the portal opens while the world is still folding in: no empty beat
+    .to(S, { portal: 1, duration: 0.7, ease: 'power2.out' }, 0.35)
+    .set(root.querySelector('.wd-portal'), { visibility: 'visible' }, 0.45)
+    .fromTo(root.querySelector('.wd-ring'), { xPercent: -50, yPercent: -50, opacity: 0, scale: 0.86, rotation: -40 }, { xPercent: -50, yPercent: -50, opacity: 1, scale: 1, rotation: 0, duration: 0.6, ease: 'power3.out' }, 0.45)
+    .fromTo(root.querySelector('.wd-pill'), { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: 'power2.out' }, 0.5)
+    .fromTo(splits.portal.chars, { yPercent: 115, rotationX: -85, opacity: 0 }, { yPercent: 0, rotationX: 0, opacity: 1, duration: 0.55, stagger: 0.018, ease: 'power3.out' }, 0.55)
+    .fromTo(all(root, '.wd-portal-sub, .wd-ctas > *'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.07, ease: 'power2.out' }, 0.85);
 }
 
 /** Mouse only: the scene follows the pointer, buttons are magnetic. Returns cleanup. */
@@ -187,18 +209,40 @@ function makeDomFrame(root: HTMLElement, dim: Dimension, ui: UiState, splits: Sp
 function start(root: HTMLElement, dim: Dimension, fine: boolean): () => void {
   const ui: UiState = { title: 0, pass: 0 };
   const splits = makeSplits(root);
+  const finale = makeFinale(dim, root, splits);
+  let finaleOn = false;
+  // play or rewind the finale as the scroll position crosses its start (not the lagging playhead)
+  const syncFinale = (progress: number) => {
+    const on = progress * TOTAL >= FINALE_AT;
+    if (on === finaleOn) return;
+    finaleOn = on;
+    if (on) finale.timeScale(1).play();
+    else finale.timeScale(FINALE_REVERSE_SPEED).reverse();
+  };
   const tl = gsap.timeline({
     defaults: { ease: 'none' },
-    scrollTrigger: { trigger: root, start: 'top top', end: `+=${TOTAL * SCREENS_PER_UNIT * 100}%`, pin: true, scrub: 1, anticipatePin: 1 },
+    scrollTrigger: {
+      trigger: root,
+      start: 'top top',
+      end: `+=${TOTAL * SCREENS_PER_UNIT * 100}%`,
+      pin: true,
+      scrub: SCRUB,
+      anticipatePin: 1,
+      onUpdate: (self) => syncFinale(self.progress),
+      onRefresh: (self) => syncFinale(self.progress),
+    },
   });
   openingBeats(tl, dim, ui, root);
   projectBeats(tl, dim, root, splits);
-  finaleBeats(tl, dim, root, splits);
+  // keeps the timeline as long as the pin, so scroll progress and playhead line up
+  tl.to({}, { duration: TOTAL - tl.duration() }, tl.duration());
 
   // Everything registered below is undone in reverse, also if a later step throws.
   const offs: Array<() => void> = [];
   const stop = () => offs.splice(0).reverse().forEach((off) => off());
   try {
+    // the finale's filter is only cleared on a full rewind; make sure no run leaves it behind
+    offs.push(() => gsap.set(all(root, '.wd-po'), { clearProps: 'filter' }));
     const pointer: Pointer = { x: 0, y: 0 };
     if (fine) offs.push(wirePointer(root, pointer));
     const domFrame = makeDomFrame(root, dim, ui, splits, tl.scrollTrigger as ScrollTrigger);
