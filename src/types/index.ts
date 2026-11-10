@@ -72,34 +72,6 @@ export interface Skill {
   updated_at?: string;
 }
 
-export interface Experience {
-  id: string;
-  title: string;
-  company: string;
-  location: string | null;
-  start_date: string;
-  end_date: string | null; // null means 'Present'
-  description: string;
-  type: 'work' | 'education';
-  sort_order: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface Testimonial {
-  id: string;
-  author_name: string;
-  author_title: string;
-  author_company: string | null;
-  author_avatar_url: string | null;
-  content: string;
-  rating: number | null; // 1-5
-  featured: boolean;
-  sort_order: number;
-  created_at?: string;
-  updated_at?: string;
-}
-
 /**
  * Visual rank of a capability within the services stack.
  *

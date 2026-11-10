@@ -697,35 +697,6 @@ export function galleryUnits(count: number): number {
  * token file describing an animation nothing runs.
  * ------------------------------------------------------------------ */
 
-/* ------------------------------------------------------------------ *
- * Testimonials — editorial quote wall.
- *
- * Replaces a 6-second auto-advancing carousel. With only two records that
- * carousel hid half the content behind a timer and moved without being
- * asked to; a wall shows everything at once, and it scales UP as records are
- * added rather than degrading.
- *
- * `columnDrift` is the one piece of real choreography: adjacent cards drift
- * in OPPOSITE directions as the section passes, so the grid reads as two
- * independent columns rather than one block sliding. Kept small — past
- * roughly 40px the cards visibly detach from their own gutters.
- * ------------------------------------------------------------------ */
-
-export const TESTIMONIAL_CONFIG = {
-  /** Once-only entrance trigger per card. */
-  revealStart: 'top 85%',
-  /** Masked quote line rise (s). */
-  lineRise: 0.66,
-  /** Per-line stagger within one quote (s). */
-  lineStagger: 0.07,
-  /** Accent rule draw (s). */
-  ruleDraw: 0.5,
-  /** Stagger between rating stars (s). */
-  starStagger: 0.05,
-  /** Opposed vertical drift per column, px before tier amplitude. */
-  columnDrift: 34,
-} as const;
-
 export const PROJECT_DETAIL_CONFIG = {
   /** Once-only entrance trigger for a detail row. */
   revealStart: 'top 82%',

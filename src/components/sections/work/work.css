@@ -71,7 +71,7 @@
 
 /* hud: project index + lime line follow the journey */
 .wd-hud {
-  position: absolute; left: var(--gutter); right: var(--gutter); bottom: clamp(20px, 4svh, 36px);
+  position: absolute; left: var(--gutter); right: var(--gutter); bottom: calc(clamp(20px, 4svh, 36px) + var(--nav-dock, 0px));
   display: flex; align-items: center; gap: 16px; opacity: 0;
 }
 .wd-hud-i { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.2em; color: var(--color-text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -106,7 +106,7 @@
 
 /* portrait screens: the scene takes the top half, the text the bottom */
 @media (max-aspect-ratio: 9/10) {
-  .wd-po { left: var(--gutter); right: var(--gutter); bottom: clamp(70px, 11svh, 110px); width: auto; gap: 12px; }
+  .wd-po { left: var(--gutter); right: var(--gutter); bottom: calc(clamp(70px, 11svh, 110px) + var(--nav-dock, 0px)); width: auto; gap: 12px; }
   .wd-po-name { font-size: clamp(38px, 11vw, 72px); }
   .wd-po .wd-line { font-size: 14px; }
   .wd-po .wd-tag { padding: 6px 10px; font-size: 12px; }

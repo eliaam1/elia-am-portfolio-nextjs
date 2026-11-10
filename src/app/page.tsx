@@ -2,30 +2,19 @@
 
 import React, { useEffect } from 'react';
 import EamLoader from '../components/layout/EamLoader';
-import Navbar from '../components/layout/Navbar';
+import IslandNav from '../components/layout/nav/IslandNav';
 import CustomCursor from '../components/layout/CustomCursor';
-import ScrollProgress from '../components/layout/ScrollProgress';
-import ScrollPath from '../components/layout/ScrollPath';
-import SectionHeading from '../components/layout/SectionHeading';
 import HeroSplit from '../components/sections/HeroSplit';
 import Profile from '../components/sections/profile/Profile';
 import StackDeck from '../components/sections/stack/StackDeck';
 import Statement from '../components/sections/statement/Statement';
 import WorkDimension from '../components/sections/work/WorkDimension';
-import Experience from '../components/sections/Experience';
-import Testimonials from '../components/sections/Testimonials';
-import Contact from '../components/sections/Contact';
-import Footer from '../components/layout/Footer';
-import {
-  getExperience,
-  getTestimonials,
-  getSiteSettings,
-} from '../lib/api';
+import Contact from '../components/sections/contact/Contact';
+import SiteFooter from '../components/sections/contact/SiteFooter';
+import { getSiteSettings } from '../lib/api';
 
 export default function Home() {
   const settings = getSiteSettings();
-  const experience = getExperience();
-  const testimonials = getTestimonials();
 
   useEffect(() => {
     const titleName = settings?.hero_title || 'Elia Abdel Massih';
@@ -44,14 +33,13 @@ export default function Home() {
 
       {/* Global Navigation & Spatial Indicator Shell */}
       <EamLoader />
-      <ScrollProgress />
       <CustomCursor />
-      <Navbar />
-      <ScrollPath />
+      <IslandNav />
 
 
       {/*
-        FOUR chapters plus the hero, down from nine sections.
+        Three chapters plus the hero (Journey was removed: the career log in
+        Profile already covers work and education).
 
         The <section> elements live HERE rather than inside the components,
         because a merged chapter needs one id, one <h2> and one shared
@@ -61,7 +49,7 @@ export default function Home() {
         block (About's ambient field) right next to a contained one.
 
         Section ids must stay in lockstep with NAV_LINKS in config/constants —
-        those same strings are the useScrollSpy anchors.
+        those same strings are the island nav's chapter anchors.
       */}
       <main id="main-content" tabIndex={-1} className="focus:outline-none">
         {/*
@@ -87,49 +75,21 @@ export default function Home() {
         {/*
           02 / WORK — the Digital Dimension (selected work, tagged with the
           services each project took; the old Services list was folded into
-          it). It ends on the contact portal.
+          it). It ends on the contact portal, which leads straight into Contact.
         */}
         <section id="work" className="relative overflow-x-clip bg-app-bg">
           <WorkDimension />
         </section>
 
-        {/* 03 / JOURNEY — timeline, then endorsements. */}
-        <section id="journey" className="relative overflow-x-clip bg-app-surface/20">
-          <div className="w-full max-w-6xl mx-auto px-6 md:px-10 py-20 md:py-28">
-            <SectionHeading
-              index="03"
-              overline="JOURNEY"
-              title={
-                <>
-                  Work &amp; Education<span className="text-app-accent">.</span>
-                </>
-              }
-              intro="A timeline of my professional experience and academic background across software engineering and AI workflows."
-            />
-            <Experience experience={experience} loading={false} />
-
-            <div className="mt-24 md:mt-32">
-              <SectionHeading
-                variant="sub"
-                overline="ENDORSEMENTS"
-                title={
-                  <>
-                    What Clients Say<span className="text-app-accent">.</span>
-                  </>
-                }
-                intro="Feedback from the engineering leads and business partners I have shipped with."
-              />
-              <Testimonials testimonials={testimonials} loading={false} />
-            </div>
-          </div>
-        </section>
-
-        {/* 04 / CONTACT — Contact still owns its own id and header. */}
-        <Contact settings={settings} loading={false} />
+        {/*
+          03 / CONTACT — a raised panel (WhatsApp and phone only) that lifts
+          off the footer below it like a curtain. Must stay the last section:
+          SiteFooter tucks up under its rounded bottom edge.
+        */}
+        <Contact />
       </main>
 
-      {/* Section 10: Minimalist Footer Departure & Return */}
-      <Footer settings={settings} />
+      <SiteFooter />
     </div>
   );
 }

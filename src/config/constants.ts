@@ -1,7 +1,7 @@
 /**
- * Four chapters plus Home.
+ * Three chapters plus Home.
  *
- * These ids are BOTH the useScrollSpy anchors and the <section id> values in
+ * These ids are BOTH the island nav's chapter anchors and the <section id> values in
  * page.tsx. They have to match exactly, or the active-link indicator simply
  * never activates and nothing visibly errors.
  *
@@ -9,7 +9,8 @@
  * projects, experience and testimonials each carried their own chapter
  * header. Nine chapter headers meant none of them read as a chapter, so
  * related blocks were merged: Skills folded into Profile, Philosophy and
- * Selected Work into Work, Endorsements into Journey. The demoted blocks keep
+ * Selected Work into Work. Journey (experience and endorsements) was later
+ * removed: Profile's career log already covers work and education. The demoted blocks keep
  * real sub-headings (SectionHeading variant="sub"), so nothing became
  * unreachable — only the top-level count changed.
  */
@@ -17,7 +18,6 @@ export const NAV_LINKS = [
   { id: 'hero', label: 'Home' },
   { id: 'profile', label: 'Profile' },
   { id: 'work', label: 'Work' },
-  { id: 'journey', label: 'Journey' },
   { id: 'contact', label: 'Contact' },
 ] as const;
 

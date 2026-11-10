@@ -18,7 +18,7 @@ interface SectionWrapperProps {
 
 /**
  * Shared section entrance reveal. Used by About, Skills, Services, Projects,
- * Experience, Testimonials and Contact.
+ * Contact.
  *
  * Visibility invariant (I1): the container carries NO authored opacity-0 class.
  * The hidden state is applied at runtime by GSAP inside a matchMedia branch, so

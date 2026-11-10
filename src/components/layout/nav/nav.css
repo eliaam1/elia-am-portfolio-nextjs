@@ -1,0 +1,91 @@
+/* The floating island navigation (IslandNav / useIsland).
+   States on .isl: is-compact (scrolled, desktop), is-open (menu), is-over-contact. */
+
+/* Space the docked island takes at the bottom of a phone screen. Anything pinned
+   to the bottom of the viewport (the Dimension's HUD, the footer's last row)
+   adds this so the island never covers it. */
+:root { --nav-dock: 0px; }
+@media (max-width: 900px) { :root { --nav-dock: 78px; } }
+
+.isl {
+  position: fixed; left: 50%; top: 16px; z-index: 999; translate: -50% 0;
+  display: flex; flex-direction: column; max-width: calc(100vw - 24px); overflow: hidden;
+  border: 1px solid var(--color-border); border-radius: 30px;
+  background: rgba(27, 31, 28, 0.78); backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+}
+.isl-row { display: flex; align-items: center; gap: 6px; padding: 7px; white-space: nowrap; }
+.isl-brand { display: inline-flex; align-items: center; height: 44px; padding: 0 14px 0 12px; color: var(--color-text-primary); border-radius: 99px; }
+.isl-mark { height: 24px; width: auto; transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+@media (hover: hover) { .isl-brand:hover .isl-mark { transform: translateY(-1px); } }
+
+/* ---------- wide (over the hero, desktop) ---------- */
+.isl-links { display: flex; }
+.isl-links a { padding: 10px 18px; border-radius: 99px; font-size: 14px; font-weight: 500; color: var(--color-text-secondary); transition: color 0.2s, background-color 0.2s; }
+.isl-links a:hover { color: var(--color-text-primary); background: var(--color-surface); }
+.isl-links a[aria-current] { color: var(--color-text-primary); background: var(--color-surface-2, #2b322c); }
+.isl-wa {
+  display: inline-flex; align-items: center; gap: 9px; height: 44px; margin-left: 8px; padding: 0 16px 0 15px; border-radius: 99px;
+  background: var(--color-accent); color: var(--color-on-accent); font-size: 14px; font-weight: 600;
+  transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.isl-wa svg { width: 18px; height: 18px; }
+.isl-wa .isl-wa-arrow { width: 16px; height: 16px; transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
+.isl-wa:hover .isl-wa-arrow { transform: translateX(3px); }
+.isl-wa:active, .isl-wa-round:active, .isl-menu:active { transform: scale(0.97); }
+
+/* ---------- compact (scrolled; always on phones) ---------- */
+.isl-compact { display: none; }
+.isl.is-compact .isl-wide { display: none; }
+.isl.is-compact .isl-compact { display: flex; }
+.isl-compact .isl-mark { height: 20px; }
+.isl-where {
+  display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 12px 0 6px;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--color-text-primary);
+}
+.isl-where b { color: var(--color-accent); font-weight: 600; }
+.isl-ring { width: 24px; height: 24px; rotate: -90deg; }
+.isl-ring circle { fill: none; stroke-width: 2.5; }
+.isl-ring-t { stroke: var(--color-border); }
+.isl-ring-p { stroke: var(--color-accent); stroke-linecap: round; }
+.isl-menu {
+  display: inline-flex; align-items: center; gap: 10px; height: 44px; padding: 0 18px; border-radius: 99px;
+  background: var(--color-surface); color: var(--color-text-primary); font-size: 14px; font-weight: 500; transition: background-color 0.2s;
+}
+.isl-menu:hover { background: var(--color-surface-2, #2b322c); }
+.isl-bars { width: 14px; height: 1.5px; background: currentColor; box-shadow: 0 -4px 0 currentColor, 0 4px 0 currentColor; transition: box-shadow 0.3s, rotate 0.3s; }
+.isl.is-open .isl-bars { box-shadow: none; rotate: 45deg; }
+.isl-wa-round {
+  display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: var(--color-accent); color: var(--color-on-accent); transition: opacity 0.3s, visibility 0.3s, width 0.3s, margin 0.3s;
+}
+.isl-wa-round svg { width: 19px; height: 19px; }
+.isl.is-over-contact .isl-wa-round { opacity: 0; visibility: hidden; width: 0; margin-left: -6px; }
+
+/* ---------- the menu, grown out of the island ---------- */
+.isl-drop { display: none; padding: 8px 18px 18px; }
+.isl.is-open .isl-drop { display: block; }
+.isl-drop a { display: flex; align-items: baseline; gap: 14px; padding: 8px 4px; border-top: 1px solid var(--color-line); }
+.isl-drop a:first-child { border-top: 0; }
+.isl-drop small { min-width: 20px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; color: var(--color-accent); }
+.isl-drop-m { display: block; overflow: hidden; }
+.isl-drop-l {
+  display: block; font-family: var(--font-heading); font-weight: 700; font-size: 34px; line-height: 1.1; letter-spacing: -0.04em;
+  color: var(--color-text-secondary); transition: color 0.2s;
+}
+.isl-drop a:hover .isl-drop-l, .isl-drop a[aria-current] .isl-drop-l { color: var(--color-text-primary); }
+.isl-drop .isl-tel { align-items: center; gap: 10px; margin-top: 8px; padding-top: 14px; font-size: 14px; color: var(--color-text-secondary); }
+.isl-drop .isl-tel svg { width: 16px; height: 16px; }
+
+/* ---------- phones: always compact, docked at the bottom, opening upwards ---------- */
+@media (max-width: 900px) {
+  .isl { top: auto; bottom: 14px; flex-direction: column-reverse; width: max-content; }
+  .isl .isl-wide { display: none; }
+  .isl .isl-compact { display: flex; }
+}
+@media (max-width: 380px) {
+  .isl-where span:not(.sr-only) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .isl-bars, .isl-wa-round, .isl-mark { transition: none; }
+}

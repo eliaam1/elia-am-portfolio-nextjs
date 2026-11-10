@@ -114,7 +114,7 @@ export function HeroSplit() {
 
         {/* Everything that simply fades on the hand-off. Direct children are GSAP targets. */}
         <div ref={fadesRef}>
-          <div className="absolute inset-x-0 bottom-0 px-[clamp(16px,4vw,56px)] pb-[clamp(24px,6svh,56px)]">
+          <div className="absolute inset-x-0 bottom-0 px-[clamp(16px,4vw,56px)] pb-[calc(clamp(24px,6svh,56px)+var(--nav-dock,0px))]">
             <div className="hero-rise flex flex-col gap-6 lg:flex-row lg:items-center lg:gap-9" style={delay(420)}>
               <p className="hidden md:block max-w-[360px] text-base leading-relaxed text-[#c9ccc3]">
                 Shopify storefronts, enterprise .NET &amp; React systems, and AI-assisted workflows.

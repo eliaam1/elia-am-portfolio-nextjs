@@ -1,0 +1,92 @@
+/* 03 / Contact (a raised panel) and the footer it lifts off like a curtain.
+   The panel overlaps the footer by its corner radius, so the void shows in the
+   rounded corners; useFooterReveal scrubs the logo in as the panel lifts. */
+
+.ct, .ft { --ct-radius: clamp(24px, 4vw, 56px); --ct-panel: #1b1f1c; --ct-void: #050605; }
+
+/* ---------- the panel ---------- */
+.ct {
+  position: relative; z-index: 2; background: var(--ct-panel);
+  border-bottom: 1px solid var(--color-border); border-radius: 0 0 var(--ct-radius) var(--ct-radius);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.45);
+}
+.ct-in {
+  display: grid; grid-template-columns: 1.1fr 1fr; align-items: end; gap: clamp(40px, 6vw, 96px);
+  max-width: 1360px; margin: 0 auto; padding: clamp(100px, 16svh, 180px) var(--gutter) clamp(70px, 12svh, 130px);
+}
+.ct-title {
+  margin-top: 26px; font-family: var(--font-heading); font-weight: 700; letter-spacing: -0.04em; line-height: 1.02;
+  font-size: clamp(40px, 6vw, 96px); color: var(--color-text-primary);
+}
+.ct-answer { color: var(--color-text-secondary); }
+.ct-facts { margin-top: 28px; display: grid; gap: 14px; list-style: none; padding: 0; color: var(--color-text-secondary); font-size: 16px; }
+.ct-fact { display: flex; align-items: center; gap: 12px; }
+.ct-fact b { color: var(--color-text-primary); font-weight: 500; }
+.ct-pulse { position: relative; flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--color-accent); }
+.ct-pulse::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid var(--color-accent);
+  animation: ct-pulse 2.2s cubic-bezier(0.23, 1, 0.32, 1) infinite;
+}
+@keyframes ct-pulse { from { transform: scale(0.6); opacity: 1; } to { transform: scale(2.2); opacity: 0; } }
+
+/* ---------- the two channels ---------- */
+.ct-chan { display: grid; gap: 12px; }
+.ct-ch {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 20px; padding: 22px 24px;
+  border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); color: var(--color-text-primary);
+  transition: border-color 0.3s, transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.ct-ch:hover { border-color: var(--color-accent); transform: translateY(-3px); }
+.ct-ch:active { transform: scale(0.98); }
+.ct-ic { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 16px; background: var(--color-bg); color: var(--color-accent); }
+.ct-ic svg { width: 24px; height: 24px; }
+.ct-ch small { display: block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--color-text-secondary); }
+.ct-ch strong { display: block; margin-top: 6px; font-family: var(--font-heading); font-weight: 700; font-size: clamp(20px, 2vw, 28px); letter-spacing: -0.02em; }
+.ct-arrow { width: 22px; height: 22px; color: var(--color-text-secondary); transition: color 0.3s, transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
+.ct-ch:hover .ct-arrow { color: var(--color-accent); transform: translate(3px, -3px); }
+.ct-ch.is-main { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
+.ct-ch.is-main small, .ct-ch.is-main .ct-arrow { color: var(--color-on-accent); }
+
+/* ---------- the footer under it ---------- */
+.ft {
+  position: relative; z-index: 1; display: grid; grid-template-rows: 1fr auto; overflow: hidden;
+  min-height: 86svh; margin-top: calc(-1 * var(--ct-radius)); padding: var(--ct-radius) var(--gutter) calc(26px + var(--nav-dock, 0px));
+  background: var(--ct-void);
+}
+.ft-glow {
+  position: absolute; left: 50%; top: 50%; width: 70vmin; height: 70vmin; margin: -35vmin; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(189, 230, 106, 0.1), transparent);
+}
+.ft-stage { place-self: center; display: grid; justify-items: center; gap: 0.9em; font-size: clamp(9px, 1.25vw, 17px); }
+.ft-mark { display: block; width: min(84vw, 680px, 60svh); height: auto; overflow: visible; }
+.ft-letters { fill: var(--color-text-primary); }
+.ft-blade { fill: var(--color-accent); }
+.ft-name { font-family: var(--font-mono); font-weight: 500; letter-spacing: 0.62em; text-transform: uppercase; color: var(--color-text-secondary); white-space: nowrap; }
+
+.ft-meta {
+  position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px 32px;
+  padding-top: 22px; border-top: 1px solid var(--color-line);
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-text-secondary);
+}
+.ft-meta nav { display: flex; flex-wrap: wrap; gap: 10px 26px; }
+.ft-meta a { transition: color 0.2s; }
+.ft-meta a:hover { color: var(--color-accent); }
+.ft-top { display: inline-flex; align-items: center; gap: 10px; color: var(--color-text-primary); }
+.ft-top-i {
+  display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--color-border); border-radius: 50%;
+  transition: border-color 0.2s, transform 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.ft-top-i svg { width: 14px; height: 14px; }
+.ft-top:hover .ft-top-i { border-color: var(--color-accent); transform: translateY(-3px); }
+
+@media (max-width: 860px) {
+  .ct-in { grid-template-columns: 1fr; align-items: start; }
+  .ft { min-height: 72svh; }
+}
+@media (max-width: 520px) {
+  .ct-ch { grid-template-columns: auto 1fr; padding: 18px; }
+  .ct-arrow { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ct-pulse::after { animation: none; }
+}
