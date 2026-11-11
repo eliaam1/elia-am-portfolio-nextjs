@@ -194,7 +194,7 @@ export function Profile() {
         <div>
           <div className="pf-svcs-sticky">
             <p className="rd-label pf-svcs-eyebrow">
-              <b>What I do</b>
+              <b>Services</b>
             </p>
             <p className="pf-num">
               <span className="sr-only">{PROJECTS_DELIVERED}+ projects delivered</span>

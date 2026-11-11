@@ -13,8 +13,8 @@ if (typeof window !== 'undefined') {
 }
 
 /** Scroll per need, in % of the viewport, plus a short hold on the last one. */
-const STEP_VH = 45;
-const OUTRO_VH = 20;
+const STEP_VH = 38;
+const OUTRO_VH = 15;
 /** Glide to the nearest need once scrolling settles (s). */
 const SNAP_DURATION = 0.7;
 const JUMP_DURATION = 1.2;

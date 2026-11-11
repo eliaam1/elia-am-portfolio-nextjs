@@ -3,32 +3,20 @@ import {
   SiAndroid,
   SiAnthropic,
   SiClaude,
-  SiCloudflare,
-  SiDocker,
   SiDotnet,
   SiElementor,
-  SiExpress,
-  SiFigma,
-  SiFramer,
-  SiGit,
-  SiGithub,
   SiGooglegemini,
   SiGreensock,
   SiJavascript,
   SiKotlin,
-  SiLinux,
   SiModelcontextprotocol,
-  SiMysql,
   SiNextdotjs,
   SiNodedotjs,
-  SiOpenjdk,
   SiPhp,
   SiPostgresql,
-  SiPostman,
   SiPython,
   SiReact,
   SiShopify,
-  SiSupabase,
   SiTailwindcss,
   SiThreedotjs,
   SiTypescript,
@@ -52,7 +40,13 @@ export interface Need {
   tools: readonly Tool[];
 }
 
-/** Every need fits the 8-tile board; STACK_SLOTS is derived, never typed. */
+/**
+ * Every need fits the 8-tile board; STACK_SLOTS is derived, never typed.
+ * Four needs, not one per discipline: the deck was six cards and ~40% of the
+ * page's scroll, which gave tools more room than the work they support.
+ * Mobile and back-end software share a card; design/delivery tools (Figma,
+ * Git, Docker…) are table stakes and earn no card at all.
+ */
 export const STACK: readonly Need[] = [
   {
     need: 'A website people remember',
@@ -82,29 +76,18 @@ export const STACK: readonly Need[] = [
     ],
   },
   {
-    need: 'A mobile app',
-    short: 'Mobile',
-    ghost: 'Mobile',
+    need: 'Mobile apps & software',
+    short: 'Mobile & software',
+    ghost: 'Software',
     tools: [
       { name: 'React Native', icon: SiReact },
       { name: 'Kotlin', icon: SiKotlin },
       { name: 'Android', icon: SiAndroid },
-      { name: 'Java', icon: SiOpenjdk },
-    ],
-  },
-  {
-    need: 'Software, APIs & dashboards',
-    short: 'Software & APIs',
-    ghost: 'Software',
-    tools: [
       { name: 'ASP.NET Core', icon: SiDotnet },
       { name: 'C#', mono: 'C#' },
       { name: 'Node.js', icon: SiNodedotjs },
-      { name: 'Express', icon: SiExpress },
       { name: 'SQL Server', mono: 'SQL' },
       { name: 'PostgreSQL', icon: SiPostgresql },
-      { name: 'MySQL', icon: SiMysql },
-      { name: 'Supabase', icon: SiSupabase },
     ],
   },
   {
@@ -118,21 +101,6 @@ export const STACK: readonly Need[] = [
       { name: 'MCP', icon: SiModelcontextprotocol },
       { name: 'Claude Code', icon: SiAnthropic },
       { name: 'Python', icon: SiPython },
-    ],
-  },
-  {
-    need: 'Design & delivery',
-    short: 'Design & delivery',
-    ghost: 'Delivery',
-    tools: [
-      { name: 'Figma', icon: SiFigma },
-      { name: 'Framer', icon: SiFramer },
-      { name: 'Git', icon: SiGit },
-      { name: 'GitHub', icon: SiGithub },
-      { name: 'Docker', icon: SiDocker },
-      { name: 'Postman', icon: SiPostman },
-      { name: 'Linux', icon: SiLinux },
-      { name: 'Cloudflare', icon: SiCloudflare },
     ],
   },
 ];

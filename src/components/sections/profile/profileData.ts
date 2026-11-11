@@ -14,8 +14,7 @@ export const PROFILE_BIO = [
 export const PROJECTS_DELIVERED = 15;
 
 export const SERVICES = [
-  'Web design',
-  'Websites',
+  'Websites & web design',
   'E-commerce stores',
   'SEO',
   'Web apps & dashboards',

@@ -49,15 +49,34 @@ export const viewport: Viewport = {
 
 /*
  * Private by owner decision: the portfolio is only for people given the URL.
- * No search indexing, no image indexing, no cached copies or snippets, and no
- * social-card metadata. next.config.ts sends the same rule as an X-Robots-Tag
- * header on every file (images and the CV PDF included), and app/robots.ts
- * shuts out image and AI crawlers.
+ * No search indexing, no image indexing, no cached copies or snippets.
+ * next.config.ts sends the same rule as an X-Robots-Tag header on every file
+ * (images and the CV PDF included), and app/robots.ts shuts out image and AI
+ * crawlers. The Open Graph / Twitter tags below carry TEXT ONLY — they exist
+ * so a link shared on WhatsApp or LinkedIn shows a title instead of a bare
+ * URL, they do not affect indexing, and they must never gain an image.
  */
+const SHARE_TITLE = "Elia Abdel Massih — Full Stack Developer";
+const SHARE_DESCRIPTION =
+  "Websites and apps that look premium, load fast and are easy for your customers to use.";
+
 export const metadata: Metadata = {
   title: "Elia Abdel Massih",
+  description: SHARE_DESCRIPTION,
   icons: {
     icon: "/brand/eam-favicon.svg",
+  },
+  openGraph: {
+    type: "website",
+    url: "https://elia-abdelmassih.vercel.app",
+    siteName: "Elia Abdel Massih",
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary",
+    title: SHARE_TITLE,
+    description: SHARE_DESCRIPTION,
   },
   robots: {
     index: false,

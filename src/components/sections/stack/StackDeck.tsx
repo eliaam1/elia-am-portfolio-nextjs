@@ -124,7 +124,12 @@ export function StackDeck() {
         </div>
 
         <div>
-          <div className="sd-segs" role="group" aria-label="Jump to a need">
+          <div
+            className="sd-segs"
+            role="group"
+            aria-label="Jump to a need"
+            style={{ '--sd-n': STACK.length } as React.CSSProperties}
+          >
             {STACK.map((s, i) => (
               <button
                 key={s.need}

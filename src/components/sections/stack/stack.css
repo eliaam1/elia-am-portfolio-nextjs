@@ -115,7 +115,7 @@
 }
 
 /* scroll indicator + jump buttons */
-.sd.is-pinned .sd-segs { position: relative; z-index: 9; display: grid; grid-template-columns: repeat(6, 1fr); gap: clamp(4px, 1vw, 10px); }
+.sd.is-pinned .sd-segs { position: relative; z-index: 9; display: grid; grid-template-columns: repeat(var(--sd-n, 4), 1fr); gap: clamp(4px, 1vw, 10px); }
 .sd.is-pinned .sd-foot { position: relative; z-index: 9; display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; }
 .sd-seg { all: unset; display: grid; gap: 10px; padding-block: 8px 2px; cursor: pointer; }
 .sd-seg:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 4px; border-radius: 2px; }

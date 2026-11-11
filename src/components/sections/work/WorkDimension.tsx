@@ -178,7 +178,12 @@ export function WorkDimension() {
           </span>
         </div>
       </div>
-      <div className="wd-veil" aria-hidden="true" />
+      {/* shown while the scene loads, so a fast scroller sees a cue, not a void;
+          the dot sits exactly where the Statement's light hands over */}
+      <div className="wd-veil" aria-hidden="true">
+        <span className="wd-veil-dot" />
+        <span className="wd-veil-txt">Loading work</span>
+      </div>
       <StaticList />
     </section>
   );
