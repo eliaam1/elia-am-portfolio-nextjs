@@ -122,6 +122,14 @@
   .wd-po-name { font-size: clamp(38px, 11vw, 72px); }
   .wd-po .wd-line { font-size: 14px; }
   .wd-po .wd-tag { padding: 6px 10px; font-size: 12px; }
+  /* The text sits over the scene here, and project screens drift behind it: a scrim
+     rising from the bottom keeps it readable (the scene keeps the clear top half). */
+  .wd.is-live .wd-ui::before {
+    content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 72%; pointer-events: none;
+    background: linear-gradient(to top, rgba(5, 6, 5, 0.95) 0%, rgba(5, 6, 5, 0.9) 55%, rgba(5, 6, 5, 0.6) 75%, rgba(5, 6, 5, 0) 100%);
+  }
+  .wd-po-name { text-shadow: 0 2px 24px rgba(5, 6, 5, 0.85); }
+  .wd-po .wd-line { text-shadow: 0 1px 12px rgba(5, 6, 5, 0.9); }
 }
 @media (max-width: 520px) {
   .wd-portal-title { font-size: 40px; }

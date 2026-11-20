@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { initLenis, destroyLenis } from '@/lib/lenis';
+import { requestRefresh } from '@/lib/refresh';
 
 const BackgroundScene = dynamic(
   () => import('../layout/BackgroundScene'),
@@ -57,15 +58,20 @@ export default function SmoothScrollProvider({
         : Promise.resolve();
 
     fontsReady.then(() => {
-      if (!cancelled) ScrollTrigger.refresh();
+      if (!cancelled) requestRefresh();
     });
 
-    const initialRefresh = window.setTimeout(() => ScrollTrigger.refresh(), 200);
+    // window 'load' is not one of ScrollTrigger's auto-refresh events (lib/lenis): request it here
+    const onLoad = () => requestRefresh();
+    if (document.readyState !== 'complete') window.addEventListener('load', onLoad, { once: true });
+
+    const initialRefresh = window.setTimeout(requestRefresh, 200);
 
     return () => {
       cancelled = true;
       window.clearTimeout(refreshTimer);
       window.clearTimeout(initialRefresh);
+      window.removeEventListener('load', onLoad);
       window.removeEventListener('resize', scheduleRefresh);
       window.removeEventListener('orientationchange', scheduleRefresh);
       destroyLenis();
@@ -80,10 +86,12 @@ export default function SmoothScrollProvider({
   }, [pathname]);
 
   const isManage = pathname.startsWith('/manage-x7k9');
+  // the home page draws its own background (ContourBackground), which would hide this one anyway
+  const isHome = pathname === '/';
 
   return (
     <>
-      {!isManage && <BackgroundScene />}
+      {!isManage && !isHome && <BackgroundScene />}
       {children}
     </>
   );

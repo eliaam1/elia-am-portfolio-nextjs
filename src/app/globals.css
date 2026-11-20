@@ -220,6 +220,13 @@ html[data-preload='loading'] body {
   overflow: hidden;
 }
 
+/* Keep the scrollbar's gutter while scrolling is locked, so releasing the
+   loader does not change the page width (a width change re-measures every
+   pinned section mid-exit). */
+html {
+  scrollbar-gutter: stable;
+}
+
 /*
  * Hold the CSS-keyframe hero entrance at frame 0 while the loader is up
  * rather than letting it play out unseen behind an opaque overlay. The
@@ -480,45 +487,52 @@ html.lenis, html.lenis body { height: auto; }
 
 /* ================================================================== *
  * EAM loader intro — CSS so it starts on first paint, before hydration.
- * Outlines draw (pathLength=1), letters fill, then the blade slices down
- * through the A. EamLoader only drives the counter and the exit.
+ * Transform and opacity only, on HTML-level boxes, so it runs on the
+ * compositor and keeps moving while the page hydrates behind it. The
+ * letters rise out of a cap-height window, the blade slides in along its
+ * own 22.6° line, and an odometer rolls 000 → 099 (EamLoader flips it to
+ * 100 and runs the exit).
  * ================================================================== */
 
-@keyframes loader-draw { to { stroke-dashoffset: 0; } }
-@keyframes loader-fill { to { fill-opacity: 1; stroke-opacity: 0; } }
-@keyframes loader-slice {
-  from { clip-path: inset(0 0 100% 0); }
-  to   { clip-path: inset(0 0 0 0); }
+/* the cap-height window: viewBox y 10..70 of -10..90 -> 20%..80% of the box */
+.loader-letters { position: absolute; left: 0; right: 0; top: 20%; height: 60%; overflow: hidden; }
+.loader-letter {
+  position: absolute; left: 0; width: 100%; top: -33.334%; height: 166.667%;
+  transform: translateY(40%); opacity: 0;
+  animation: loader-rise 900ms cubic-bezier(0.22, 1, 0.36, 1) calc(150ms + var(--i, 0) * 90ms) forwards;
 }
-
-.loader-shape > * {
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  fill-opacity: 0;
-  animation:
-    loader-draw 900ms cubic-bezier(0.45, 0, 0.55, 1) calc(var(--i, 0) * 60ms) forwards,
-    loader-fill 350ms ease-out 780ms forwards;
-}
-
+/* the blade arrives along its own direction (mark units -38.34, -92 of 178 x 100) */
 .loader-blade {
-  clip-path: inset(0 0 100% 0);
-  animation: loader-slice 420ms cubic-bezier(0.65, 0, 0.35, 1) 950ms forwards;
+  position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible;
+  transform: translate(-21.54%, -92%); opacity: 0;
+  animation: loader-blade 560ms cubic-bezier(0.22, 1, 0.36, 1) 900ms forwards;
 }
+@keyframes loader-rise { to { transform: translateY(0); opacity: 1; } }
+@keyframes loader-blade { 40% { opacity: 1; } to { transform: translate(0, 0); opacity: 1; } }
 
 .loader-meta {
   opacity: 0;
   animation: hero-fade-in 500ms ease-out 200ms forwards;
 }
 
+/* Odometer: each digit is a column behind a one-digit window; steps() lands on whole digits. */
+.loader-odo { display: inline-flex; line-height: 1.1; }
+.loader-odo-slot { display: block; height: 1.1em; overflow: hidden; }
+.loader-odo-col { display: block; }
+.loader-odo-col > span { display: block; height: 1.1em; }
+.loader-odo-tens { animation: loader-odo var(--count-ms, 2400ms) steps(10, jump-none) var(--count-delay, 150ms) forwards; }
+.loader-odo-ones { animation: loader-odo calc(var(--count-ms, 2400ms) / 10) steps(10, jump-none) var(--count-delay, 150ms) 10 forwards; }
+@keyframes loader-odo { to { transform: translateY(-90%); } }
+.loader-odo.is-done .loader-odo-col { animation: none; transform: none; }
+.loader-odo.is-done .loader-odo-hundreds { transform: translateY(-50%); }
+
 @media (prefers-reduced-motion: reduce) {
-  .loader-shape > *,
+  .loader-letter,
   .loader-blade,
-  .loader-meta {
+  .loader-meta,
+  .loader-odo-col {
     animation: none;
-    stroke-dashoffset: 0;
-    fill-opacity: 1;
-    stroke-opacity: 0;
-    clip-path: none;
+    transform: none;
     opacity: 1;
   }
 }
@@ -877,3 +891,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 [data-roll='ink'].is-rolling { --roll-copy: var(--color-on-accent); }
 .fx-roll-w, .fx-roll-ch { display: inline-block; }
+
+/* Contour lines (components/layout/contour): fixed behind every section, above
+   the body's graphite (the page wrapper has no background of its own). */
+.contour-bg { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; display: block; }

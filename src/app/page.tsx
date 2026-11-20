@@ -5,6 +5,7 @@ import EamLoader from '../components/layout/EamLoader';
 import IslandNav from '../components/layout/nav/IslandNav';
 import CustomCursor from '../components/layout/CustomCursor';
 import LetterRoll from '../components/layout/LetterRoll';
+import ContourBackground from '../components/layout/contour/ContourBackground';
 import HeroSplit from '../components/sections/HeroSplit';
 import Profile from '../components/sections/profile/Profile';
 import StackDeck from '../components/sections/stack/StackDeck';
@@ -23,7 +24,8 @@ export default function Home() {
   }, [settings]);
 
   return (
-    <div className="relative min-h-screen bg-app-bg text-app-text-primary selection:bg-app-accent/20">
+    // no background here: <body> paints the graphite, and the contour lines sit between the two (z-index -1)
+    <div className="relative min-h-screen text-app-text-primary selection:bg-app-accent/20">
       {/* Accessible Skip-to-Content link */}
       <a
         href="#main-content"
@@ -34,6 +36,7 @@ export default function Home() {
 
       {/* Global Navigation & Spatial Indicator Shell */}
       <EamLoader />
+      <ContourBackground />
       <CustomCursor />
       <IslandNav />
 

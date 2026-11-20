@@ -6,6 +6,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { useGSAP } from '@gsap/react';
 import { getLenis } from '../../../lib/lenis';
+import { requestRefresh } from '../../../lib/refresh';
 import type { Dimension, Pointer } from './scene/createDimension';
 import { DIM_TIMING, FINALE_REVERSE_SPEED, OPENING_EXIT_Z, projectZ, SCREENS_PER_UNIT } from './scene/timing';
 import { WORK_PROJECTS } from './workData';
@@ -321,13 +322,13 @@ export function useDimension(rootRef: RefObject<HTMLElement | null>, stageRef: R
               stop = start(root, created, fine);
             });
             root.classList.remove('is-loading');
-            ScrollTrigger.refresh();
+            requestRefresh();
           })
           .catch(() => {
             // No WebGL, an image failed, or setup threw: free everything and keep the readable list.
             if (cancelled) return;
             teardown();
-            ScrollTrigger.refresh();
+            requestRefresh();
           });
 
         return () => {

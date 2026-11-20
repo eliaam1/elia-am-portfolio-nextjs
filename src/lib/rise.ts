@@ -1,6 +1,7 @@
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
+import { requestRefresh } from './refresh';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -40,9 +41,9 @@ export function splitLines(el: HTMLElement, words = false): SplitText {
 const RESIZE_DEBOUNCE_MS = 200;
 
 /**
- * Runs `build` in its own GSAP context and rebuilds it when line breaks can
- * change: once web fonts finish loading (if they had not yet) and whenever
- * the viewport WIDTH changes. Height-only resizes (a mobile address bar) are
+ * Runs `build` in its own GSAP context (after web fonts have loaded, so lines
+ * are measured once in the final face) and rebuilds it whenever the viewport
+ * WIDTH changes. Height-only resizes (a mobile address bar) are
  * ignored. Line splits measured before either event would leave hard-wrapped
  * lines that re-wrap inside their masks. Returns the teardown.
  */
@@ -56,11 +57,12 @@ export function rebuildOnReflow(build: () => void | (() => void)): () => void {
   const rerun = () => {
     if (cancelled) return;
     run();
-    ScrollTrigger.refresh();
+    requestRefresh();
   };
-  run();
-
-  if (document.fonts.status !== 'loaded') document.fonts.ready.then(rerun);
+  // Build once, in the final font. Building before fonts load and again after
+  // doubled every section's split-and-measure work while the loader animated.
+  if (document.fonts.status === 'loaded') run();
+  else document.fonts.ready.then(rerun);
 
   let lastWidth = window.innerWidth;
   let timer: number | undefined;

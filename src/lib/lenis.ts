@@ -1,6 +1,13 @@
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+/**
+ * Mobile address-bar resizes never refresh. 'load' is left out of the
+ * auto-refresh events on purpose: it fires while the loader animates, and the
+ * provider requests one coalesced refresh for it instead (lib/refresh).
+ */
+const ST_CONFIG = { ignoreMobileResize: true, autoRefreshEvents: 'visibilitychange,DOMContentLoaded,resize' };
 import { LENIS_CONFIG } from '../config/motion';
 
 if (typeof window !== 'undefined') {
@@ -49,7 +56,7 @@ export function initLenis(): Lenis | null {
   ).matches;
 
   if (prefersReducedMotion) {
-    ScrollTrigger.config({ ignoreMobileResize: true });
+    ScrollTrigger.config(ST_CONFIG);
     return null;
   }
 
@@ -84,7 +91,7 @@ export function initLenis(): Lenis | null {
   gsap.ticker.lagSmoothing(0);
 
   // Don't refresh on mobile browser-chrome resize
-  ScrollTrigger.config({ ignoreMobileResize: true });
+  ScrollTrigger.config(ST_CONFIG);
 
   return lenisInstance;
 }
