@@ -33,11 +33,13 @@ export function Contact() {
           <ul className="ct-facts">
             <li className="ct-fact">
               <span className="ct-pulse" aria-hidden="true" />
-              <b>{C.availability}</b>
+              <b className="ct-fact-t" data-wipe-key="">
+                {C.availability}
+              </b>
             </li>
             <li className="ct-fact">
               <span className="rd-cut" aria-hidden="true" />
-              {C.location}
+              <span className="ct-fact-t">{C.location}</span>
             </li>
           </ul>
         </div>
@@ -56,7 +58,9 @@ export function Contact() {
             </span>
             <span>
               <small>{C.whatsapp.hint}</small>
-              <strong>{C.whatsapp.action}</strong>
+              <strong>
+                <span data-roll="ink">{C.whatsapp.action}</span>
+              </strong>
             </span>
             <ArrowUpRight className="ct-arrow" aria-hidden="true" />
           </a>
@@ -66,7 +70,9 @@ export function Contact() {
             </span>
             <span>
               <small>{C.phone.hint}</small>
-              <strong>{CONTACT.phoneDisplay}</strong>
+              <strong>
+                <span data-roll="">{CONTACT.phoneDisplay}</span>
+              </strong>
             </span>
             <ArrowUpRight className="ct-arrow" aria-hidden="true" />
           </a>

@@ -4,6 +4,7 @@ import React, { useEffect } from 'react';
 import EamLoader from '../components/layout/EamLoader';
 import IslandNav from '../components/layout/nav/IslandNav';
 import CustomCursor from '../components/layout/CustomCursor';
+import LetterRoll from '../components/layout/LetterRoll';
 import HeroSplit from '../components/sections/HeroSplit';
 import Profile from '../components/sections/profile/Profile';
 import StackDeck from '../components/sections/stack/StackDeck';
@@ -90,6 +91,8 @@ export default function Home() {
       </main>
 
       <SiteFooter />
+      {/* after the nav, contact and footer, whose link labels it splits */}
+      <LetterRoll />
     </div>
   );
 }

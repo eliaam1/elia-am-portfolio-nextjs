@@ -5,6 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { FADE_UP, RISE, rebuildOnReflow, splitLines } from '../../../lib/rise';
+import { bladeWipe } from '../../../lib/textFx';
 import { CAREER_LOG, PROFILE_BIO, PROFILE_STATEMENT, PROJECTS_DELIVERED, SERVICES } from './profileData';
 import './profile.css';
 
@@ -32,6 +33,9 @@ const AFTER_SWEEP = 'bottom 128%';
 const READING_LINE = 'top 55%';
 const COMMIT_LINE = 'top 68%';
 const SCRUB = 0.6;
+/** The bio's blade wipes start this far into the intro, this far apart (s). */
+const BIO_AT = 0.45;
+const BIO_GAP = 0.2;
 const MOTION_OK = '(prefers-reduced-motion: no-preference)';
 
 /**
@@ -97,13 +101,13 @@ export function Profile() {
           ? { trigger: hero, start: AFTER_SWEEP }
           : { trigger: statement, start: RISE.start };
 
-        // Intro: eyebrow, the statement rising line by line, then the bio.
+        // Intro: eyebrow, the statement rising line by line, then the bio wiped in by the blade.
         const split = splitLines(statement, true);
-        gsap
+        const intro = gsap
           .timeline({ scrollTrigger: introAt })
           .from(all('.pf-eyebrow'), { y: FADE_UP.y, autoAlpha: 0, duration: FADE_UP.duration, ease: FADE_UP.ease }, 0)
-          .from(split.lines, { yPercent: RISE.yPercent, duration: RISE.duration, stagger: RISE.stagger, ease: RISE.ease }, 0.05)
-          .from(all('.pf-bio'), { y: 28, autoAlpha: 0, duration: 1, stagger: 0.12, ease: 'power3.out' }, 0.45);
+          .from(split.lines, { yPercent: RISE.yPercent, duration: RISE.duration, stagger: RISE.stagger, ease: RISE.ease }, 0.05);
+        all('.pf-bio').forEach((p, i) => intro.add(bladeWipe(p).tl.paused(false), BIO_AT + i * BIO_GAP));
         // Then its words brighten as you read on.
         gsap.fromTo(
           split.words,

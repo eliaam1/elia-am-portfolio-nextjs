@@ -854,3 +854,26 @@ html.lenis, html.lenis body { height: auto; }
 @media (prefers-reduced-motion: reduce) {
   .rd-cue-track::after { animation: none; transform: none; opacity: 0.6; }
 }
+
+/* ==========================================================================
+ * Text effects (src/lib/textFx.ts), after landonorris.com, in the EAM voice.
+ * ========================================================================== */
+
+/* Blade wipe: each split line carries its own bar; the line's clip-path and the
+   bar's are written by JS, so the bar may overhang the line by the blade run. */
+.fx-wipe-line { position: relative; width: fit-content; }
+.fx-wipe-bar { position: absolute; left: 0; top: 0; bottom: 0; z-index: 1; pointer-events: none; }
+
+/* Letter roll: only once JS has split the text (.is-rolling), the text sits in a
+   one-line window and its lime copy (a text-shadow) waits just below it. */
+[data-roll].is-rolling {
+  display: inline-block;
+  overflow: clip;
+  height: 1.25em;
+  line-height: 1.25;
+  white-space: nowrap; /* a one-line window: a wrapped label would lose its second line */
+  vertical-align: bottom;
+  text-shadow: 0 1.25em var(--roll-copy, var(--color-accent));
+}
+[data-roll='ink'].is-rolling { --roll-copy: var(--color-on-accent); }
+.fx-roll-w, .fx-roll-ch { display: inline-block; }

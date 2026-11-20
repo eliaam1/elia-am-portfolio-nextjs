@@ -45,13 +45,13 @@ export function IslandNav() {
         <nav aria-label="Primary" className="isl-links">
           {BAR_LINKS.map((l) => (
             <a key={l.id} href={`#${l.id}`} data-chapter={l.id} onClick={(e) => go(e, l.id)}>
-              {l.label}
+              <span data-roll="">{l.label}</span>
             </a>
           ))}
         </nav>
         <a className="isl-wa" href={CONTACT.whatsappUrl} target="_blank" rel="noopener noreferrer" data-cursor-label="WhatsApp" data-cursor-fill="">
           <SiWhatsapp aria-hidden="true" />
-          WhatsApp me
+          <span data-roll="ink">WhatsApp me</span>
           <ArrowRight aria-hidden="true" className="isl-wa-arrow" />
         </a>
       </div>
@@ -82,13 +82,15 @@ export function IslandNav() {
           <a key={l.id} href={`#${l.id}`} data-chapter={l.id} onClick={(e) => go(e, l.id)}>
             <small>{CHAPTER_NUMBERS[i]}</small>
             <span className="isl-drop-m">
-              <span className="isl-drop-l">{l.label}</span>
+              <span className="isl-drop-l">
+                <span data-roll="">{l.label}</span>
+              </span>
             </span>
           </a>
         ))}
         <a className="isl-tel" href={CONTACT.phoneHref}>
           <Phone aria-hidden="true" />
-          {CONTACT.phoneDisplay}
+          <span data-roll="">{CONTACT.phoneDisplay}</span>
         </a>
       </nav>
     </header>

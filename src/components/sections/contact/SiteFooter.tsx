@@ -49,7 +49,7 @@ export function SiteFooter() {
         <nav aria-label="Footer">
           {NAV_LINKS.map((l) => (
             <a key={l.id} href={`#${l.id}`} onClick={(e) => go(e, l.id)}>
-              {l.label}
+              <span data-roll="">{l.label}</span>
             </a>
           ))}
         </nav>
@@ -58,7 +58,7 @@ export function SiteFooter() {
           © {new Date().getFullYear()} {FOOTER_NAME}
         </p>
         <a className="ft-top" href="#main-content" onClick={(e) => go(e, null)}>
-          Back to top
+          <span data-roll="">Back to top</span>
           <span className="ft-top-i" aria-hidden="true">
             <ArrowUp />
           </span>
