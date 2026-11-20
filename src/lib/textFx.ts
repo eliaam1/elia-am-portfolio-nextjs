@@ -54,7 +54,7 @@ export function bladeWipe(el: HTMLElement, { isKey = false }: BladeWipeOptions =
     const bar = document.createElement('span');
     bar.className = 'fx-wipe-bar';
     bar.setAttribute('aria-hidden', 'true');
-    bar.style.width = `${w + s}px`;
+    bar.style.width = `${w + s + 2 * line.offsetHeight * DESCENDER_PAD * BLADE}px`;
     bar.style.background = allKey || line.querySelector('[data-wipe-key]') ? WIPE.key : WIPE.quiet;
     line.appendChild(bar);
 
@@ -65,8 +65,8 @@ export function bladeWipe(el: HTMLElement, { isKey = false }: BladeWipeOptions =
     const se = s * (1 + (2 * pad) / line.offsetHeight);
     const draw = () => {
       const t = Math.min(p.tail, p.head);
-      const top = p.head + (se - s) / 2;
-      line.style.clipPath = `polygon(${-se}px ${-pad}px, ${top}px ${-pad}px, ${top - se}px calc(100% + ${pad}px), ${-se}px calc(100% + ${pad}px))`;
+      // nothing of the text shows until the bar's leading edge has reached it
+      line.style.clipPath = `polygon(${-se}px ${-pad}px, ${p.head}px ${-pad}px, ${p.head - se}px calc(100% + ${pad}px), ${-se}px calc(100% + ${pad}px))`;
       bar.style.clipPath = `polygon(${t}px 0, ${p.head}px 0, ${p.head - s}px 100%, ${t - s}px 100%)`;
     };
     const done = () => {
@@ -75,13 +75,27 @@ export function bladeWipe(el: HTMLElement, { isKey = false }: BladeWipeOptions =
     };
     draw();
     const at = i * WIPE.stagger;
-    tl.to(p, { head: w + s, duration: WIPE.duration, ease: 'power2.out', onUpdate: draw }, at).to(
+    const end = w + se;
+    tl.to(p, { head: end, duration: WIPE.duration, ease: 'power2.out', onUpdate: draw }, at).to(
       p,
-      { tail: w + s, duration: WIPE.duration, ease: 'power2.inOut', onUpdate: draw, onComplete: done },
+      { tail: end, duration: WIPE.duration, ease: 'power2.inOut', onUpdate: draw, onComplete: done },
       at + WIPE.retract
     );
   });
   return { tl, split };
+}
+
+/** Where a wiped block starts: as it comes into view, never before (an off-screen wipe is a wasted one). */
+export const WIPE_START = 'top 90%';
+
+/**
+ * Blade-wipes `el` once, when it scrolls into view. Its own trigger rather than
+ * a parent timeline's, so it cannot play while still below the fold.
+ */
+export function wipeOnEnter(el: HTMLElement, options?: BladeWipeOptions): SplitText {
+  const { tl, split } = bladeWipe(el, options);
+  ScrollTrigger.create({ trigger: el, start: WIPE_START, once: true, onEnter: () => tl.play() });
+  return split;
 }
 
 /* ------------------------------------------------------------------------ */

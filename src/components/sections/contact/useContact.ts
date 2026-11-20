@@ -5,7 +5,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { FADE_UP, rebuildOnReflow } from '../../../lib/rise';
-import { bladeWipe, ovalLens } from '../../../lib/textFx';
+import { ovalLens, wipeOnEnter } from '../../../lib/textFx';
 
 if (typeof window !== 'undefined') {
   gsap.registerPlugin(ScrollTrigger, useGSAP);
@@ -20,7 +20,7 @@ const STAGE_LAG = -30;
 const BLADE_RUN = { x: -38.34, y: -92 };
 /** Letters start this far below the cap-height mask, in mark units. */
 const LETTER_DROP = 64;
-/** The facts' wipes start this long into the panel's entrance, this far apart (s). */
+/** The facts' markers fade in this long into the panel's entrance, this far apart (s); the text wipes on its own entry. */
 const FACT_AT = 0.5;
 const FACT_GAP = 0.15;
 
@@ -45,7 +45,7 @@ export function useContactMotion(rootRef: RefObject<HTMLElement | null>): void {
           // the facts are wiped in by the blade: lime on availability, graphite on location
           const facts = gsap.timeline({ scrollTrigger: start });
           facts.from(all(root, '.ct-fact > [aria-hidden]'), { opacity: 0, duration: 0.4, stagger: FACT_GAP }, FACT_AT);
-          all(root, '.ct-fact-t').forEach((el, i) => facts.add(bladeWipe(el).tl.paused(false), FACT_AT + i * FACT_GAP));
+          all(root, '.ct-fact-t').forEach((el) => wipeOnEnter(el));
           gsap.from(all(root, '.ct-ch'), { ...fade, y: 28, stagger: 0.1, delay: 0.3, scrollTrigger: start });
         })
       );
