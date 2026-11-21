@@ -5,9 +5,12 @@ import { COLLAPSE_DEPTH, OPENING_EXIT_Z, PORTAL_DISTANCE, PROJECT_GAP, projectZ 
 import { applyItem, beaconRadius, clamp01, glowTexture, itemOf, lerp, mkBeacon, setBeacon, type SharedUniforms } from './materials';
 
 const BG = 0x050605;
+/** The site's lime: the world's colour in the opening and the finale. */
+const HOME_GLOW = 0xbde66a;
 const PARTICLES = 2600;
 const MAX_DPR = 1.75;
-
+/** How quickly the world's colour follows the project on screen (per second). */
+const TINT_RATE = 2.4;
 
 export interface ProjectState {
   /** 0..1 the composition's entrance sequence. */
@@ -121,7 +124,8 @@ export async function createDimension(canvas: HTMLCanvasElement, projects: reado
   // where the finale's dive brings the camera to rest, facing the portal
   const diveZ = cEnd.z + PORTAL_DISTANCE;
   const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(BG, 40, 125);
+  const fog = new THREE.Fog(BG, 40, 125);
+  scene.fog = fog;
   const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 420);
   const opening = mkBeacon(glowTexture(false), glowTexture(true));
   const portal = mkBeacon(glowTexture(false), glowTexture(true));
@@ -181,6 +185,34 @@ export async function createDimension(canvas: HTMLCanvasElement, projects: reado
     return clamp01(S.portal * 3);
   };
 
+  /**
+   * The world takes on the colours of the client on screen: particles and grid
+   * in their brand colour, the darkness around them in a near-black of it.
+   * Lime returns between projects only if you linger, and for the finale.
+   */
+  const home = { glow: new THREE.Color(HOME_GLOW), bg: new THREE.Color(BG) };
+  const tints = projects.map((p) => ({ glow: new THREE.Color(p.tint.glow), bg: new THREE.Color(p.tint.bg) }));
+  const glow = home.glow.clone();
+  const bg = home.bg.clone();
+  const glowTo = new THREE.Color();
+  const bgTo = new THREE.Color();
+  const rgb = { r: 0, g: 0, b: 0 };
+  const updateTint = (dt: number) => {
+    const k = activeIndex();
+    const w = state.p[k].in * (1 - state.collapse);
+    glowTo.copy(home.glow).lerp(tints[k].glow, w);
+    bgTo.copy(home.bg).lerp(tints[k].bg, w);
+    const a = 1 - Math.exp(-dt * TINT_RATE);
+    glow.lerp(glowTo, a);
+    bg.lerp(bgTo, a);
+    grid.material.color.copy(glow);
+    fog.color.copy(bg);
+    renderer.setClearColor(bg, 1);
+    // the particle shader writes its colour straight out, so it wants display values
+    glow.getRGB(rgb, THREE.SRGBColorSpace);
+    (particles.material.uniforms.uTint.value as THREE.Vector3).set(rgb.r, rgb.g, rgb.b);
+  };
+
   const updateComps = (fade: number, pointer: Pointer) => {
     const S = state;
     comps.forEach((c, i) => {
@@ -226,6 +258,7 @@ export async function createDimension(canvas: HTMLCanvasElement, projects: reado
     U.uTime.value = time;
     drift += dt * (0.8 + vel * 16);
     const fade = updateWorld(vel);
+    updateTint(dt);
     updateComps(fade, pointer);
     updateCamera(vel, pointer);
     renderer.render(scene, camera);

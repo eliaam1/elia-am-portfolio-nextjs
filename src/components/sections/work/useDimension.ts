@@ -70,6 +70,8 @@ function openingBeats(tl: gsap.core.Timeline, dim: Dimension, ui: UiState, root:
     .to(ui, { title: 1, duration: 0.5 * k, ease: 'power2.out' }, 0.32 * k)
     .to(sub, { opacity: 1, duration: 0.2 * k }, 0.62 * k)
     .to(sub, { opacity: 0, duration: 0.15 * k }, 0.92 * k)
+    // the "how to move" cue is there from the first frame; it hands over to the hud's
+    .to(root.querySelector('.wd-cue-open'), { opacity: 0, duration: 0.15 * k }, 0.88 * k)
     .to(S, { env: 1, duration: 0.6 * k }, 0.6 * k)
     .to(ui, { pass: 1, duration: 0.55 * k, ease: 'power2.in' }, 0.9 * k)
     .to(S, { cz: OPENING_EXIT_Z, duration: 0.6 * k, ease: 'power2.in' }, 0.9 * k)
@@ -130,6 +132,99 @@ function makeFinale(dim: Dimension, root: HTMLElement, splits: Splits): gsap.cor
     .fromTo(root.querySelector('.wd-pill'), { y: 16, opacity: 0 }, { y: 0, opacity: 1, duration: 0.35, ease: 'power2.out' }, 0.5)
     .fromTo(splits.portal.chars, { yPercent: 115, rotationX: -85, opacity: 0 }, { yPercent: 0, rotationX: 0, opacity: 1, duration: 0.55, stagger: 0.018, ease: 'power3.out' }, 0.55)
     .fromTo(all(root, '.wd-portal-sub, .wd-ctas > *'), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, stagger: 0.07, ease: 'power2.out' }, 0.85);
+}
+
+/**
+ * Where a step lands, as pin progress: each project with its info fully shown,
+ * then the finale. Used by sideways swipes and the hud's buttons.
+ */
+const STOPS: readonly number[] = [
+  ...WORK_PROJECTS.map((_, i) => (DIM_TIMING.open + (i + 0.5) * DIM_TIMING.seg) / TOTAL),
+  1,
+];
+/** A sideways swipe: this far, this much more sideways than vertical, this quick. */
+const SWIPE = { minPx: 48, ratio: 1.4, maxMs: 700 } as const;
+/** Seconds a step takes to travel. */
+const STEP_SECONDS = 1.2;
+/** A pause this long (ms) inside the journey lights the hud's scroll cue. */
+const IDLE_MS = 2200;
+const STOP_EPS = 0.01;
+
+interface Nav {
+  /** Per frame: idle cue, button states. */
+  frame: () => void;
+  off: () => void;
+}
+
+/**
+ * Ways through the pinned journey besides scrolling. A sideways swipe is what
+ * many people try first on a scene like this, so instead of doing nothing it
+ * steps to the next or previous project, as do the hud's buttons.
+ */
+function wireNav(root: HTMLElement, st: ScrollTrigger): Nav {
+  const hud = root.querySelector<HTMLElement>('.wd-hud');
+  const cue = root.querySelector<HTMLElement>('.wd-cue-hud');
+  const prev = root.querySelector<HTMLButtonElement>('[data-nav="prev"]');
+  const next = root.querySelector<HTMLButtonElement>('[data-nav="next"]');
+
+  const step = (dir: 1 | -1) => {
+    const p = st.progress;
+    const stop = dir > 0 ? STOPS.find((s) => s > p + STOP_EPS) : [...STOPS].reverse().find((s) => s < p - STOP_EPS);
+    // past the last stop: on to the next section; before the first: back to the opening
+    const y = stop === undefined ? (dir > 0 ? st.end + 1 : st.start) : st.start + stop * (st.end - st.start);
+    const lenis = getLenis();
+    if (lenis) lenis.scrollTo(y, { duration: STEP_SECONDS });
+    else window.scrollTo({ top: y, behavior: 'smooth' });
+  };
+
+  let sx = 0;
+  let sy = 0;
+  let t0 = 0;
+  let multi = false;
+  const onStart = (e: TouchEvent) => {
+    multi = e.touches.length > 1;
+    sx = e.touches[0].clientX;
+    sy = e.touches[0].clientY;
+    t0 = performance.now();
+  };
+  const onEnd = (e: TouchEvent) => {
+    if (multi || !st.isActive) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - sx;
+    const dy = t.clientY - sy;
+    if (performance.now() - t0 > SWIPE.maxMs || Math.abs(dx) < SWIPE.minPx || Math.abs(dx) < Math.abs(dy) * SWIPE.ratio) return;
+    step(dx < 0 ? 1 : -1);
+  };
+  const onPrev = () => step(-1);
+  const onNext = () => step(1);
+  root.addEventListener('touchstart', onStart, { passive: true });
+  root.addEventListener('touchend', onEnd, { passive: true });
+  prev?.addEventListener('click', onPrev);
+  next?.addEventListener('click', onNext);
+
+  let lastP = -1;
+  let movedAt = performance.now();
+  const frame = () => {
+    const now = performance.now();
+    if (Math.abs(st.progress - lastP) > 1e-4) {
+      lastP = st.progress;
+      movedAt = now;
+    }
+    cue?.classList.toggle('is-idle', st.isActive && now - movedAt > IDLE_MS);
+    // the buttons only take taps while the hud is actually showing
+    hud?.classList.toggle('is-on', Number(hud.style.opacity || 0) > 0.5);
+    if (prev) prev.disabled = st.progress <= STOPS[0] + STOP_EPS;
+  };
+
+  return {
+    frame,
+    off: () => {
+      root.removeEventListener('touchstart', onStart);
+      root.removeEventListener('touchend', onEnd);
+      prev?.removeEventListener('click', onPrev);
+      next?.removeEventListener('click', onNext);
+    },
+  };
 }
 
 /** Mouse only: the scene follows the pointer, buttons are magnetic. Returns cleanup. */
@@ -247,6 +342,8 @@ function start(root: HTMLElement, dim: Dimension, fine: boolean): () => void {
     const pointer: Pointer = { x: 0, y: 0 };
     if (fine) offs.push(wirePointer(root, pointer));
     const domFrame = makeDomFrame(root, dim, ui, splits, tl.scrollTrigger as ScrollTrigger);
+    const nav = wireNav(root, tl.scrollTrigger as ScrollTrigger);
+    offs.push(nav.off);
     let running = true;
     let vel = 0;
     const io = new IntersectionObserver(([entry]) => {
@@ -262,6 +359,7 @@ function start(root: HTMLElement, dim: Dimension, fine: boolean): () => void {
       vel += (clamp01(Math.abs(lenis ? lenis.velocity : 0) / FULL_SPEED) - vel) * 0.08;
       dim.frame(dt, vel, pointer);
       domFrame();
+      nav.frame();
     };
     gsap.ticker.add(tick);
     offs.push(() => gsap.ticker.remove(tick));

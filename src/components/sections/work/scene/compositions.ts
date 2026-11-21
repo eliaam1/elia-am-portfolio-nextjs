@@ -149,6 +149,8 @@ export function mkParticles(U: SharedUniforms, count: number, center: THREE.Vect
       uOpacity: { value: 0 },
       uPix: { value: 1 },
       uCenter: { value: center.clone() },
+      // display (sRGB) values: this shader writes its colour straight out
+      uTint: { value: new THREE.Vector3(0.74, 0.9, 0.42) },
     },
     vertexShader: /* glsl */ `
       uniform float uDrift, uCollapse, uPortal, uTime, uPix; uniform vec3 uCenter;
@@ -168,10 +170,10 @@ export function mkParticles(U: SharedUniforms, count: number, center: THREE.Vect
         gl_Position = projectionMatrix * mv;
       }`,
     fragmentShader: /* glsl */ `
-      uniform float uOpacity; varying float vA; varying float vR;
+      uniform float uOpacity; uniform vec3 uTint; varying float vA; varying float vR;
       void main() {
         float d = length(gl_PointCoord - 0.5);
-        vec3 c = mix(vec3(0.74, 0.9, 0.42), vec3(0.95), step(0.8, vR));
+        vec3 c = mix(uTint, vec3(0.95), step(0.8, vR));
         gl_FragColor = vec4(c, smoothstep(0.5, 0.0, d) * vA * uOpacity);
       }`,
     transparent: true,

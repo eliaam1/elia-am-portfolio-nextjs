@@ -44,7 +44,17 @@
 .wd-po {
   position: absolute; left: var(--gutter); bottom: clamp(88px, 14svh, 150px);
   display: grid; gap: 16px; width: min(40vw, 560px); visibility: hidden;
+  isolation: isolate;
 }
+/* Screens drift behind the text: a soft pool of darkness keeps it readable. It
+   belongs to the project info, so it arrives and leaves with it. */
+.wd-po::before {
+  content: ''; position: absolute; z-index: -1; pointer-events: none;
+  left: calc(-1 * var(--gutter)); right: -16vw; top: -18svh; bottom: calc(-1 * clamp(88px, 14svh, 150px));
+  background: radial-gradient(ellipse 62% 58% at 32% 62%, rgba(5, 6, 5, 0.86) 0%, rgba(5, 6, 5, 0.62) 48%, rgba(5, 6, 5, 0) 100%);
+}
+.wd-po-name { text-shadow: 0 2px 28px rgba(5, 6, 5, 0.7); }
+.wd-po .wd-line { text-shadow: 0 1px 14px rgba(5, 6, 5, 0.85); }
 .wd-meta { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-text-secondary); }
 .wd-meta b { color: var(--color-accent); font-weight: 600; }
 .wd-po-name {
@@ -92,6 +102,68 @@
 .wd-hud-line { position: relative; flex: 1; height: 1px; overflow: hidden; background: rgba(255, 255, 255, 0.14); }
 .wd-hud-line i { position: absolute; inset: 0; background: var(--color-accent); transform: scaleX(0); transform-origin: 0 50%; }
 
+/* ---------- how to move: scroll cue + step buttons ----------
+   A pinned scene does not move the page, so people try sideways swipes. The cue
+   names the real gesture for the device in hand; it lights up after a pause. */
+.wd.is-live { touch-action: pan-y pinch-zoom; } /* sideways swipes are ours (useDimension), zoom stays */
+.wd-cue {
+  display: inline-flex; align-items: center; gap: 10px; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color-soft);
+  transition: color 0.3s var(--ease-out);
+}
+/* mouse: a wheel whose dot rolls down */
+.wd-cue-ic { position: relative; flex: none; width: 18px; height: 28px; border: 1.5px solid currentColor; border-radius: 10px; }
+.wd-cue-ic i {
+  position: absolute; left: 50%; top: 5px; width: 3px; height: 6px; margin-left: -1.5px; border-radius: 2px;
+  background: var(--color-accent); animation: wd-cue-wheel 1.6s var(--ease-out) infinite;
+}
+@keyframes wd-cue-wheel { 0% { transform: translateY(0); opacity: 0; } 20% { opacity: 1; } 70% { transform: translateY(9px); opacity: 0; } 100% { opacity: 0; } }
+.wd-cue-touch { display: none; }
+/* touch: a fingertip sliding up its trail */
+@media not all and (hover: hover) and (pointer: fine) {
+  .wd-cue-wheel { display: none; }
+  .wd-cue-touch { display: inline; }
+  .wd-cue-ic { width: 14px; border: 0; border-radius: 0; }
+  .wd-cue-ic::before {
+    content: ''; position: absolute; left: 50%; top: 1px; bottom: 4px; width: 1.5px; margin-left: -0.75px;
+    background: linear-gradient(to top, currentColor, transparent); opacity: 0.45;
+  }
+  .wd-cue-ic i {
+    top: auto; bottom: 0; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%;
+    box-shadow: 0 0 0 4px rgba(189, 230, 106, 0.2); animation-name: wd-cue-swipe;
+  }
+}
+@keyframes wd-cue-swipe { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 75% { transform: translateY(-18px); opacity: 0; } 100% { opacity: 0; } }
+
+/* as the section arrives and through the opening: centred, under the title */
+.wd-cue-open {
+  position: absolute; left: 50%; bottom: calc(clamp(28px, 6svh, 56px) + var(--nav-dock, 0px));
+  transform: translateX(-50%); color: var(--color-text-primary);
+}
+/* in the hud: still while you move, lit and moving once you pause. Its own dark
+   pill, because project screens drift through that corner. */
+.wd-cue-hud {
+  flex: none; height: 40px; padding: 0 14px 0 12px; border: 1px solid var(--color-border); border-radius: 99px;
+  background: rgba(5, 6, 5, 0.6); backdrop-filter: blur(6px);
+}
+.wd-cue-hud .wd-cue-ic { transform: scale(0.8); }
+.wd-cue-hud .wd-cue-ic i { animation-play-state: paused; opacity: 0.9; }
+.wd-cue-hud.is-idle { color: var(--color-accent); }
+.wd-cue-hud.is-idle .wd-cue-ic i { animation-play-state: running; }
+
+.wd-hud-nav { display: flex; gap: 8px; flex: none; }
+.wd-hud-btn {
+  display: grid; place-items: center; width: 40px; height: 40px; padding: 0; border-radius: 50%; cursor: pointer;
+  border: 1px solid var(--color-border); background: rgba(5, 6, 5, 0.6); backdrop-filter: blur(6px); color: var(--color-text-primary);
+  pointer-events: none; transition: border-color 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
+}
+.wd-hud.is-on .wd-hud-btn { pointer-events: auto; }
+.wd-hud-btn svg { width: 16px; height: 16px; }
+.wd-hud-btn:disabled { color: rgba(241, 242, 236, 0.3); cursor: default; }
+@media (hover: hover) and (pointer: fine) { .wd-hud-btn:not(:disabled):hover { border-color: var(--color-accent); } }
+@media (pointer: coarse) { .wd-hud-btn { width: 44px; height: 44px; } .wd-cue-hud { height: 44px; } }
+@media (prefers-reduced-motion: reduce) { .wd-cue-ic i { animation: none; } }
+
 /* the portal finale; the text ring is sized and placed from the 3D ring each frame (GSAP centres it) */
 .wd-portal { position: absolute; inset: 0; display: grid; place-items: center; padding: 0 var(--gutter); text-align: center; visibility: hidden; }
 .wd-ring { position: absolute; left: 50%; top: 50%; width: 0; height: 0; overflow: visible; }
@@ -128,6 +200,10 @@
     content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 72%; pointer-events: none;
     background: linear-gradient(to top, rgba(5, 6, 5, 0.95) 0%, rgba(5, 6, 5, 0.9) 55%, rgba(5, 6, 5, 0.6) 75%, rgba(5, 6, 5, 0) 100%);
   }
+  /* the big title above already names the project; the room goes to the cue and buttons */
+  .wd-hud { gap: 12px; }
+  .wd-hud-n { display: none; }
+  .wd-po::before { content: none; } /* the full-width scrim below does this job here */
   .wd-po-name { text-shadow: 0 2px 24px rgba(5, 6, 5, 0.85); }
   .wd-po .wd-line { text-shadow: 0 1px 12px rgba(5, 6, 5, 0.9); }
 }

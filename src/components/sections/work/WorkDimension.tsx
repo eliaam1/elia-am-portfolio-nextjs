@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef } from 'react';
-import { ArrowUpRight, Phone } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpRight, Phone } from 'lucide-react';
 import { SiWhatsapp } from 'react-icons/si';
 import { CONTACT } from '../../../config/constants';
 import { useDimension } from './useDimension';
@@ -64,6 +64,26 @@ function ProjectOverlay({ p, i }: ProjectProps) {
   );
 }
 
+/**
+ * How to move through the pinned journey, in the visitor's own gesture: a
+ * mouse wheel and "Scroll" with a mouse, a finger swiping up and "Swipe up" on
+ * touch screens (CSS picks one by pointer type).
+ */
+function ScrollCue({ className, rest = '' }: { className: string; rest?: string }) {
+  return (
+    <span className={`wd-cue ${className}`} aria-hidden="true">
+      <span className="wd-cue-ic">
+        <i />
+      </span>
+      <span>
+        <span className="wd-cue-wheel">Scroll</span>
+        <span className="wd-cue-touch">Swipe up</span>
+        {rest}
+      </span>
+    </span>
+  );
+}
+
 /** The same projects as a plain list: reduced motion, no WebGL, or before the scene loads. */
 function StaticList() {
   return (
@@ -122,10 +142,11 @@ export function WorkDimension() {
               </span>
             </p>
             <p className="rd-label wd-sub">
-              <b>02</b> &nbsp;&mdash;&nbsp; Work · scroll to enter
+              <b>02</b> &nbsp;&mdash;&nbsp; Work
             </p>
           </div>
         </div>
+        <ScrollCue className="wd-cue-open" rest=" to explore" />
 
         {WORK_PROJECTS.map((p, i) => (
           <ProjectOverlay key={p.id} p={p} i={i} />
@@ -175,6 +196,17 @@ export function WorkDimension() {
           </span>
           <span className="wd-hud-line">
             <i data-hud-l />
+          </span>
+          <ScrollCue className="wd-cue-hud" />
+          {/* Step between projects without scrolling. Out of the tab order like the rest of
+              this overlay: keyboards and screen readers get the list below. */}
+          <span className="wd-hud-nav">
+            <button type="button" className="wd-hud-btn" data-nav="prev" tabIndex={-1} aria-label="Previous project">
+              <ArrowUp aria-hidden="true" />
+            </button>
+            <button type="button" className="wd-hud-btn" data-nav="next" tabIndex={-1} aria-label="Next project">
+              <ArrowDown aria-hidden="true" />
+            </button>
           </span>
         </div>
       </div>

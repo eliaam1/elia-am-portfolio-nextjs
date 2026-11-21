@@ -21,6 +21,17 @@ export interface WorkProject {
   services: readonly string[];
   desktop: string;
   mobile: string;
+  /**
+   * The client's brand colours, which the 3D world takes on while this
+   * project is on screen: `glow` tints the particles and floor grid, `bg` the
+   * darkness around them (kept near black so the HTML text stays readable).
+   */
+  tint: ProjectTint;
+}
+
+export interface ProjectTint {
+  glow: string;
+  bg: string;
 }
 
 export const WORK_PROJECTS: readonly WorkProject[] = [
@@ -35,6 +46,7 @@ export const WORK_PROJECTS: readonly WorkProject[] = [
     services: ['E-commerce stores', 'Backend, APIs & automations'],
     desktop: `${SHOTS}sportzone-desktop.webp`,
     mobile: `${SHOTS}sportzone-mobile.webp`,
+    tint: { glow: '#1aa8e6', bg: '#05121f' },
   },
   {
     id: 'physio',
@@ -47,6 +59,7 @@ export const WORK_PROJECTS: readonly WorkProject[] = [
     services: ['Web design', 'Websites', 'Animation & 3D', 'SEO'],
     desktop: `${SHOTS}physioclinic-desktop.webp`,
     mobile: `${SHOTS}physioclinic-mobile.webp`,
+    tint: { glow: '#72c8b6', bg: '#0a1522' },
   },
   {
     id: 'agriside',
@@ -60,6 +73,7 @@ export const WORK_PROJECTS: readonly WorkProject[] = [
     services: ['Web design', 'Websites', 'Animation & 3D'],
     desktop: `${SHOTS}agriside-desktop.webp`,
     mobile: `${SHOTS}agriside-mobile.webp`,
+    tint: { glow: '#7cbf3a', bg: '#071205' },
   },
 ];
 
