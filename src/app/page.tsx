@@ -8,7 +8,7 @@ import LetterRoll from '../components/layout/LetterRoll';
 import ContourBackground from '../components/layout/contour/ContourBackground';
 import HeroSplit from '../components/sections/HeroSplit';
 import Profile from '../components/sections/profile/Profile';
-import StackDeck from '../components/sections/stack/StackDeck';
+import StackPosters from '../components/sections/stack/StackPosters';
 import Statement from '../components/sections/statement/Statement';
 import WorkDimension from '../components/sections/work/WorkDimension';
 import Contact from '../components/sections/contact/Contact';
@@ -63,10 +63,10 @@ export default function Home() {
         */}
         <HeroSplit />
 
-        {/* 01 / PROFILE — statement, bio, career log and services, then the stack deck. */}
+        {/* 01 / PROFILE — statement, bio, career log and services, then the Stack posters. */}
         <section id="profile" aria-label="Profile" className="relative overflow-x-clip">
           <Profile />
-          <StackDeck />
+          <StackPosters />
         </section>
 
         {/*
